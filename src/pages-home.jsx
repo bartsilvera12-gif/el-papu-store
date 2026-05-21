@@ -26,20 +26,6 @@ function Hero() {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 w-full">
         <div className="grid lg:grid-cols-12 gap-8 items-center">
           <div className="lg:col-span-7 flex flex-col gap-6 animate-fadeup">
-            {/* Eyebrow badges */}
-            <div className="flex flex-wrap gap-2">
-              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#1FE620]/40 bg-[#1FE620]/5 text-[#1FE620] text-[11px] font-bold uppercase tracking-wider">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#1FE620] animate-pulse shadow-[0_0_8px_#1FE620]"></span>
-                Productos virales
-              </span>
-              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/15 text-white/70 text-[11px] font-bold uppercase tracking-wider">
-                Compra rápida
-              </span>
-              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/15 text-white/70 text-[11px] font-bold uppercase tracking-wider">
-                Ofertas exclusivas
-              </span>
-            </div>
-
             <h1 className="font-display text-[64px] sm:text-[96px] lg:text-[128px] leading-[0.85] text-white tracking-tight">
               EL PAPU<br />
               <span className="relative inline-block">
@@ -170,6 +156,8 @@ function FeaturedProducts() {
 function ViralesSection() {
   const { PRODUCTS } = window.__PAPU_DATA__;
   const virales = PRODUCTS.filter(p => p.badge === "viral").slice(0, 4);
+  const { navigate, addToCart } = useShop();
+
   return (
     <section className="py-16 sm:py-24 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#1FE620]/[0.04] to-transparent"></div>
@@ -189,7 +177,43 @@ function ViralesSection() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-          {virales.map((p, i) => <ProductCard key={p.id} product={p} rank={i + 1} />)}
+          {virales.map((p, i) => (
+            <div key={p.id}
+              style={{ animationDelay: `${i * 100}ms` }}
+              className="group relative bg-[#0a0a0a] border border-white/5 hover:border-[#1FE620]/60 rounded-xl overflow-hidden transition-all duration-500 hover:shadow-[0_0_40px_rgba(31,230,32,0.2)] hover:-translate-y-1 animate-slideup">
+              <button onClick={() => navigate("detalle", { id: p.id })}
+                className={`block aspect-[4/5] relative bg-gradient-to-br ${p.color} overflow-hidden w-full`}>
+                <img src={p.img} alt={p.nombre}
+                  className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:scale-110 transition-transform duration-700" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent"></div>
+                {/* shine sweep */}
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#1FE620]/15 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                </div>
+                <div className="absolute top-4 left-4 flex flex-col gap-1.5">
+                  <Badge kind="viral">Viral</Badge>
+                </div>
+                <div className="absolute top-4 right-4 font-display text-4xl text-white leading-none drop-shadow-[0_0_12px_rgba(31,230,32,0.6)]">
+                  #{i + 1}
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 p-5">
+                  <div className="text-[10px] uppercase tracking-[0.3em] text-[#1FE620] mb-1">{p.categoria}</div>
+                  <div className="text-white font-bold text-lg sm:text-xl mb-2 line-clamp-2 leading-tight">{p.nombre}</div>
+                  <div className="flex items-end justify-between gap-2">
+                    <div className="font-display text-2xl sm:text-3xl text-white">{fmt(p.precio)}</div>
+                    <div className="text-white/80 text-[10px] uppercase tracking-wider flex items-center gap-1 group-hover:text-[#1FE620] transition-colors">
+                      Ver más <Icon name="arrow-right" className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </div>
+                </div>
+              </button>
+              {/* Add to cart bar (revealed on hover desktop) */}
+              <button onClick={() => addToCart(p)}
+                className="hidden md:flex absolute bottom-0 left-0 right-0 items-center justify-center gap-2 bg-white text-black py-2.5 text-xs font-bold uppercase tracking-wider translate-y-full group-hover:translate-y-0 transition-transform duration-300 ring-1 ring-[#1FE620]/40">
+                <Icon name="plus" className="w-4 h-4" /> Agregar
+              </button>
+            </div>
+          ))}
         </div>
       </div>
     </section>

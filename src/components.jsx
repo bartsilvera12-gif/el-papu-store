@@ -15,10 +15,18 @@ function ShopProvider({ children }) {
   const [route, setRoute] = useState({ name: "home", params: {} });
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [toast, setToast] = useState({ show: false, message: "" });
+  const toastTimer = useRef(null);
 
   const navigate = (name, params = {}) => {
     setRoute({ name, params });
     window.scrollTo({ top: 0, behavior: "instant" });
+  };
+
+  const showToast = (message) => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setToast({ show: true, message });
+    toastTimer.current = setTimeout(() => setToast(t => ({ ...t, show: false })), 2200);
   };
 
   const addToCart = (product, qty = 1) => {
@@ -27,6 +35,7 @@ function ShopProvider({ children }) {
       if (existing) return prev.map(i => i.id === product.id ? { ...i, qty: i.qty + qty } : i);
       return [...prev, { ...product, qty }];
     });
+    showToast(`${product.nombre} agregado al carrito`);
   };
   const removeFromCart = (id) => setCart(prev => prev.filter(i => i.id !== id));
   const updateQty = (id, qty) => {
@@ -45,6 +54,7 @@ function ShopProvider({ children }) {
       route, navigate,
       searchOpen, setSearchOpen,
       searchTerm, setSearchTerm,
+      toast, showToast,
     }}>
       {children}
     </ShopContext.Provider>
@@ -127,6 +137,10 @@ function Navbar() {
 
   const go = (l) => {
     if (l.id === "virales" || l.id === "ofertas") navigate("catalogo", l.params);
+    else if (l.id === "contacto") {
+      const footer = document.getElementById("site-footer");
+      if (footer) footer.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
     else navigate(l.id);
     setMobileOpen(false);
   };
@@ -471,7 +485,7 @@ function SearchOverlay() {
 function Footer() {
   const { navigate } = useShop();
   return (
-    <footer className="bg-[#050505] border-t border-[#1FE620]/15 relative overflow-hidden">
+    <footer id="site-footer" className="bg-[#050505] border-t border-[#1FE620]/15 relative overflow-hidden">
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#1FE620] to-transparent opacity-50"></div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14 sm:py-20">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
@@ -493,7 +507,11 @@ function Footer() {
             <div className="text-[#1FE620] uppercase text-xs font-bold tracking-[0.3em] mb-4">Tienda</div>
             <ul className="space-y-2.5 text-sm">
               {[["home","Inicio"],["catalogo","Catálogo"],["catalogo","Virales"],["catalogo","Ofertas"],["sobre","Sobre nosotros"],["contacto","Contacto"]].map(([r,l],i) => (
-                <li key={i}><button onClick={() => navigate(r)} className="text-white/60 hover:text-[#1FE620]">{l}</button></li>
+                <li key={i}><button onClick={() => {
+                  if (r === "contacto") {
+                    document.getElementById("site-footer")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  } else navigate(r);
+                }} className="text-white/60 hover:text-[#1FE620]">{l}</button></li>
               ))}
             </ul>
           </div>
@@ -512,7 +530,7 @@ function Footer() {
             <ul className="space-y-2.5 text-sm">
               <li><button onClick={() => navigate("faq")} className="text-white/60 hover:text-[#1FE620]">Preguntas frecuentes</button></li>
               <li><button onClick={() => navigate("politicas")} className="text-white/60 hover:text-[#1FE620]">Políticas</button></li>
-              <li><button onClick={() => navigate("contacto")} className="text-white/60 hover:text-[#1FE620]">Contacto</button></li>
+              <li><button onClick={() => document.getElementById("site-footer")?.scrollIntoView({ behavior: "smooth", block: "start" })} className="text-white/60 hover:text-[#1FE620]">Contacto</button></li>
               <li><a href="#" className="text-white/60 hover:text-[#1FE620]">WhatsApp</a></li>
             </ul>
             <div className="mt-5 text-xs text-white/40">
