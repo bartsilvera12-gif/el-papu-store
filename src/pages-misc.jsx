@@ -75,7 +75,7 @@ function CheckoutPage() {
             <Section title="2 · Método de entrega">
               <div className="grid sm:grid-cols-3 gap-2 mb-4">
                 {[
-                  { id: "envio", t: "Envío a domicilio", d: "$3.500", icon: "truck" },
+                  { id: "envio", t: "Envío a domicilio", d: fmt(3500), icon: "truck" },
                   { id: "retiro", t: "Retiro coordinado", d: "Sin costo", icon: "box" },
                   { id: "wa", t: "Coordinar por WhatsApp", d: "A consultar", icon: "whatsapp" },
                 ].map(o => (

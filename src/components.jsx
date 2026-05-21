@@ -4,7 +4,7 @@ const { useState, useEffect, useRef, useMemo, createContext, useContext } = Reac
 
 // ----------------------- Utils & Context -----------------------
 
-const fmt = (n) => "$" + n.toLocaleString("es-AR");
+const fmt = (n) => "Gs. " + n.toLocaleString("es-PY");
 
 const ShopContext = createContext(null);
 const useShop = () => useContext(ShopContext);
