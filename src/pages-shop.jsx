@@ -228,7 +228,6 @@ function DetallePage() {
                   </>
                 )}
               </div>
-              <div className="text-white/50 text-xs mt-2">o 3 cuotas sin interés de {fmt(Math.round(product.precio / 3))}</div>
             </div>
 
             <p className="text-white/70 leading-relaxed mb-6">{product.descripcion}</p>
