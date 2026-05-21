@@ -342,8 +342,15 @@ function CategoriasSection() {
           subtitle="Encontrá lo que estás buscando. O dejate sorprender."
         />
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-          {CATEGORIAS.map((c, i) => (
-            <button key={c.id} onClick={() => navigate("catalogo")}
+          {CATEGORIAS.map((c, i) => {
+            // "tendencias" y "top" no son categorías reales de los productos: se mapean a sus filtros equivalentes.
+            const params = c.id === "tendencias"
+              ? { filter: "viral" }
+              : c.id === "top"
+                ? { filter: "top" }
+                : { categoria: c.nombre };
+            return (
+            <button key={c.id} onClick={() => navigate("catalogo", params)}
               className={`group relative bg-[#0d0d0d] border border-white/5 hover:border-[#1FE620] rounded-xl p-5 text-left transition-all hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(31,230,32,0.15)] overflow-hidden ${i === 0 ? "sm:col-span-1 lg:col-span-2 lg:row-span-1" : ""}`}>
               <div className="absolute inset-0 bg-gradient-to-br from-[#1FE620]/0 to-[#1FE620]/0 group-hover:from-[#1FE620]/10 group-hover:to-transparent transition-all"></div>
               <div className="relative flex flex-col gap-3">
@@ -357,7 +364,8 @@ function CategoriasSection() {
                 </div>
               </div>
             </button>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

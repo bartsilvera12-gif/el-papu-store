@@ -8,8 +8,9 @@ function CatalogoPage() {
   const { PRODUCTS, CATEGORIAS } = window.__PAPU_DATA__;
   const { route, navigate } = useShop();
   const initialFilter = route.params?.filter || "todos";
+  const initialCat = route.params?.categoria || "todas";
 
-  const [cat, setCat] = useStateShop("todas");
+  const [cat, setCat] = useStateShop(initialCat);
   const [filter, setFilter] = useStateShop(initialFilter);
   const [sort, setSort] = useStateShop("relevancia");
   const [search, setSearch] = useStateShop("");
@@ -22,6 +23,7 @@ function CatalogoPage() {
     if (filter === "viral") arr = arr.filter(p => p.badge === "viral");
     if (filter === "oferta") arr = arr.filter(p => p.precioAnterior);
     if (filter === "nuevo") arr = arr.filter(p => p.badge === "nuevo");
+    if (filter === "top") arr = arr.filter(p => p.badge === "top");
     if (search) arr = arr.filter(p => p.nombre.toLowerCase().includes(search.toLowerCase()));
     arr = arr.filter(p => p.precio <= priceMax);
     if (sort === "precio-asc") arr.sort((a, b) => a.precio - b.precio);
