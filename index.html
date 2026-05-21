@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>El Papu Store — Productos con estilo</title>
+<meta name="description" content="El Papu Store — productos virales, ofertas y novedades. Compra rápida y estilo urbano." />
+<link rel="icon" href="assets/logo.png" />
+
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com?plugins=line-clamp"></script>
+
+<!-- Google Fonts: Bebas Neue (display) + Inter (body) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --neon: #1FE620;
+    --neon-bright: #00FF33;
+    --neon-dark: #0B3D13;
+  }
+  html { background: #050505; scroll-behavior: smooth; }
+  body { font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  .font-display { font-family: 'Bebas Neue', 'Inter', sans-serif; letter-spacing: 0.01em; }
+
+  /* Selection */
+  ::selection { background: #1FE620; color: #000; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: #0a0a0a; }
+  ::-webkit-scrollbar-thumb { background: #1c1c1c; border-radius: 8px; }
+  ::-webkit-scrollbar-thumb:hover { background: #1FE620; }
+
+  /* Focus styles */
+  *:focus-visible { outline: 2px solid #1FE620; outline-offset: 2px; border-radius: 4px; }
+  button:focus-visible, a:focus-visible { box-shadow: 0 0 0 2px #1FE620; }
+
+  /* Animations */
+  @keyframes fadeup {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fadeup { animation: fadeup 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  .animate-float { animation: float 4s ease-in-out infinite; }
+
+  @keyframes spin-slow { from { transform: rotate(-12deg); } to { transform: rotate(348deg); } }
+  .animate-spin-slow { animation: spin-slow 12s linear infinite; }
+
+  @keyframes stamp {
+    0%, 100% { transform: rotate(-12deg) scale(1); box-shadow: 0 0 30px rgba(31,230,32,0.55); }
+    50% { transform: rotate(-8deg) scale(1.06); box-shadow: 0 0 44px rgba(31,230,32,0.85); }
+  }
+  .animate-stamp { animation: stamp 2.4s ease-in-out infinite; }
+
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .animate-marquee { animation: marquee 30s linear infinite; }
+
+  @keyframes marquee-cards {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .animate-marquee-cards { animation: marquee-cards 35s linear infinite; }
+
+  @keyframes pop {
+    0% { transform: scale(0.4); opacity: 0; }
+    60% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .animate-pop { animation: pop 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+  @keyframes kenburns {
+    0% { transform: scale(1) translate(0, 0); }
+    100% { transform: scale(1.15) translate(-2%, -2%); }
+  }
+  .animate-kenburns { animation: kenburns 6s ease-out both; }
+
+  @keyframes slideup {
+    0% { opacity: 0; transform: translateY(30px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  .animate-slideup { animation: slideup 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+  @keyframes pop-rotate {
+    0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+    60% { transform: scale(1.15) rotate(0deg); }
+    100% { transform: scale(1) rotate(-8deg); opacity: 1; }
+  }
+  .animate-pop-rotate { animation: pop-rotate 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+  @keyframes sweep {
+    0% { transform: translateX(-120%); }
+    100% { transform: translateX(120%); }
+  }
+  .animate-sweep { animation: sweep 2.2s ease-in-out infinite; }
+
+  @keyframes bgshift {
+    0% { opacity: 0.3; transform: scale(0.95); }
+    100% { opacity: 0.6; transform: scale(1); }
+  }
+  .animate-bgshift { animation: bgshift 1.2s ease-out both; }
+
+  /* Line clamp fallback */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Range slider */
+  input[type=range] {
+    -webkit-appearance: none;
+    background: transparent;
+    height: 6px;
+  }
+  input[type=range]::-webkit-slider-runnable-track {
+    height: 4px;
+    background: #1c1c1c;
+    border-radius: 4px;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 18px;
+    width: 18px;
+    border-radius: 50%;
+    background: #1FE620;
+    box-shadow: 0 0 12px rgba(31, 230, 32, 0.5);
+    margin-top: -7px;
+    cursor: pointer;
+  }
+  input[type=range]::-moz-range-track {
+    height: 4px;
+    background: #1c1c1c;
+    border-radius: 4px;
+  }
+  input[type=range]::-moz-range-thumb {
+    height: 18px;
+    width: 18px;
+    border-radius: 50%;
+    background: #1FE620;
+    border: none;
+    box-shadow: 0 0 12px rgba(31, 230, 32, 0.5);
+    cursor: pointer;
+  }
+
+  /* select */
+  select { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231FE620' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>"); background-repeat: no-repeat; background-position: right 10px center; background-size: 14px; padding-right: 32px; -webkit-appearance: none; -moz-appearance: none; appearance: none; }
+  select option { background: #0d0d0d; color: white; }
+</style>
+
+<script>
+  // Tailwind config
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          display: ['Bebas Neue', 'sans-serif'],
+        },
+        colors: {
+          neon: {
+            DEFAULT: '#1FE620',
+            bright: '#00FF33',
+            dark: '#0B3D13',
+          },
+        },
+      },
+    },
+  }
+</script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- React + Babel (pinned) -->
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <!-- App scripts -->
+  <script type="text/babel" data-presets="react" src="src/data.jsx"></script>
+  <script type="text/babel" data-presets="react" src="src/components.jsx"></script>
+  <script type="text/babel" data-presets="react" src="src/pages-home.jsx"></script>
+  <script type="text/babel" data-presets="react" src="src/pages-shop.jsx"></script>
+  <script type="text/babel" data-presets="react" src="src/pages-misc.jsx"></script>
+  <script type="text/babel" data-presets="react" src="src/app.jsx"></script>
+</body>
+</html>
