@@ -129,7 +129,7 @@ function Hero() {
 function FeaturedProducts() {
   const { PRODUCTS } = window.__PAPU_DATA__;
   const items = [PRODUCTS[3], PRODUCTS[0], PRODUCTS[2], PRODUCTS[7]];
-  const { navigate } = useShop();
+  const { navigate, addToCart } = useShop();
   return (
     <section className="py-16 sm:py-24 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -144,7 +144,55 @@ function FeaturedProducts() {
           }
         />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-          {items.map(p => <ProductCard key={p.id} product={p} />)}
+          {items.map((p, i) => {
+            const discount = p.precioAnterior ? Math.round((1 - p.precio / p.precioAnterior) * 100) : 0;
+            return (
+              <div key={p.id}
+                style={{ animationDelay: `${i * 100}ms` }}
+                className="group relative bg-[#0a0a0a] border border-white/5 hover:border-[#1FE620]/60 rounded-xl overflow-hidden transition-all duration-500 hover:shadow-[0_0_40px_rgba(31,230,32,0.2)] hover:-translate-y-1 animate-slideup">
+                <button onClick={() => navigate("detalle", { id: p.id })}
+                  className={`block aspect-[4/5] relative bg-gradient-to-br ${p.color} overflow-hidden w-full`}>
+                  <img src={p.img} alt={p.nombre}
+                    className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:scale-110 transition-transform duration-700" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent"></div>
+                  {/* shine sweep */}
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#1FE620]/15 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                  </div>
+                  <div className="absolute top-4 left-4 flex flex-col gap-1.5">
+                    {p.badge && <Badge kind={p.badge}>{p.badge}</Badge>}
+                    {discount > 0 && <Badge kind="descuento">-{discount}%</Badge>}
+                  </div>
+                  <div className="absolute top-4 right-4">
+                    <div className="text-[10px] uppercase tracking-widest text-white/80 font-bold flex items-center gap-1 bg-black/40 backdrop-blur-sm border border-white/10 rounded-full px-2.5 py-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#1FE620] animate-pulse"></span>
+                      {p.stock} stock
+                    </div>
+                  </div>
+                  <div className="absolute bottom-0 left-0 right-0 p-5">
+                    <div className="text-[10px] uppercase tracking-[0.3em] text-[#1FE620] mb-1">{p.categoria}</div>
+                    <div className="text-white font-bold text-lg sm:text-xl mb-2 line-clamp-2 leading-tight">{p.nombre}</div>
+                    <div className="flex items-end justify-between gap-2">
+                      <div>
+                        {p.precioAnterior && (
+                          <div className="text-white/40 line-through text-xs">{fmt(p.precioAnterior)}</div>
+                        )}
+                        <div className="font-display text-2xl sm:text-3xl text-white">{fmt(p.precio)}</div>
+                      </div>
+                      <div className="text-white/80 text-[10px] uppercase tracking-wider flex items-center gap-1 group-hover:text-[#1FE620] transition-colors">
+                        Ver más <Icon name="arrow-right" className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </div>
+                  </div>
+                </button>
+                {/* Add to cart bar (revealed on hover desktop) */}
+                <button onClick={() => addToCart(p)}
+                  className="hidden md:flex absolute bottom-0 left-0 right-0 items-center justify-center gap-2 bg-white text-black py-2.5 text-xs font-bold uppercase tracking-wider translate-y-full group-hover:translate-y-0 transition-transform duration-300 ring-1 ring-[#1FE620]/40">
+                  <Icon name="plus" className="w-4 h-4" /> Agregar
+                </button>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
