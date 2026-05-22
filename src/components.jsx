@@ -119,6 +119,10 @@ function Navbar() {
   const { cartCount, setCartOpen, navigate, route, setSearchOpen } = useShop();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [catsOpen, setCatsOpen] = useState(false);
+  const [mobileCatsOpen, setMobileCatsOpen] = useState(false);
+  const catsRef = useRef(null);
+  const CATEGORIAS = window.__PAPU_DATA__?.CATEGORIAS || [];
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -126,18 +130,40 @@ function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Cerrar dropdown de categorías al clickear fuera
+  useEffect(() => {
+    if (!catsOpen) return;
+    const onDocClick = (e) => {
+      if (catsRef.current && !catsRef.current.contains(e.target)) setCatsOpen(false);
+    };
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, [catsOpen]);
+
   const links = [
     { id: "home", label: "Inicio" },
     { id: "catalogo", label: "Catálogo" },
-    { id: "virales", label: "Virales", params: { filter: "viral" } },
-    { id: "ofertas", label: "Ofertas", params: { filter: "oferta" } },
+    { id: "categorias", label: "Categorías", dropdown: true },
     { id: "sobre", label: "Sobre nosotros" },
     { id: "contacto", label: "Contacto" },
   ];
 
+  // Mapeo categoría -> params del catálogo (tendencias y top no tienen producto matching)
+  const catParams = (c) => c.id === "tendencias"
+    ? { filter: "viral" }
+    : c.id === "top"
+      ? { filter: "top" }
+      : { categoria: c.nombre };
+
+  const goCategory = (c) => {
+    navigate("catalogo", catParams(c));
+    setCatsOpen(false);
+    setMobileCatsOpen(false);
+    setMobileOpen(false);
+  };
+
   const go = (l) => {
-    if (l.id === "virales" || l.id === "ofertas") navigate("catalogo", l.params);
-    else if (l.id === "contacto") {
+    if (l.id === "contacto") {
       const footer = document.getElementById("site-footer");
       if (footer) footer.scrollIntoView({ behavior: "smooth", block: "start" });
     }
@@ -152,7 +178,33 @@ function Navbar() {
           <Logo size="md" onClick={() => navigate("home")} />
 
           <nav className="hidden lg:flex items-center gap-7">
-            {links.map(l => (
+            {links.map(l => l.dropdown ? (
+              <div key={l.id} ref={catsRef} className="relative">
+                <button onClick={() => setCatsOpen(o => !o)}
+                  className={`flex items-center gap-1 text-sm font-medium uppercase tracking-wider transition-colors relative
+                    ${catsOpen ? "text-[#1FE620]" : "text-white/80 hover:text-white"}`}>
+                  {l.label}
+                  <Icon name="chevron-down" className={`w-3.5 h-3.5 transition-transform ${catsOpen ? "rotate-180" : ""}`} />
+                </button>
+                {catsOpen && (
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-64 bg-[#0a0a0a] border border-[#1FE620]/30 rounded-lg shadow-[0_10px_40px_rgba(0,0,0,0.6),0_0_30px_rgba(31,230,32,0.15)] overflow-hidden z-50 animate-fadeup">
+                    <div className="p-2">
+                      {CATEGORIAS.map(c => (
+                        <button key={c.id} onClick={() => goCategory(c)}
+                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-left text-sm text-white/80 hover:text-white hover:bg-[#1FE620]/10 border border-transparent hover:border-[#1FE620]/30 transition-all">
+                          <span className="text-xl leading-none">{c.icon}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-bold uppercase tracking-wider text-xs">{c.nombre}</div>
+                            <div className="text-[10px] text-white/40 truncate">{c.desc}</div>
+                          </div>
+                          <Icon name="arrow-right" className="w-3.5 h-3.5 text-[#1FE620] opacity-0 group-hover:opacity-100" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
               <button key={l.id} onClick={() => go(l)}
                 className={`text-sm font-medium uppercase tracking-wider transition-colors relative
                   ${route.name === l.id ? "text-[#1FE620]" : "text-white/80 hover:text-white"}`}>
@@ -199,7 +251,27 @@ function Navbar() {
             </button>
           </div>
           <nav className="p-5 flex flex-col gap-1">
-            {links.map((l, i) => (
+            {links.map((l, i) => l.dropdown ? (
+              <div key={l.id} style={{ animationDelay: `${i * 40}ms` }}>
+                <button onClick={() => setMobileCatsOpen(o => !o)}
+                  className={`group w-full text-left px-4 py-4 rounded-md font-bold uppercase tracking-wider border border-white/5 hover:border-[#1FE620]/40 hover:bg-[#1FE620]/5 transition-all flex items-center justify-between
+                    ${mobileCatsOpen ? "text-[#1FE620] bg-[#1FE620]/5 border-[#1FE620]/30" : "text-white"}`}>
+                  <span>{l.label}</span>
+                  <Icon name="chevron-down" className={`w-4 h-4 transition-transform ${mobileCatsOpen ? "rotate-180" : ""}`} />
+                </button>
+                {mobileCatsOpen && (
+                  <div className="mt-1 ml-2 flex flex-col gap-1 border-l border-[#1FE620]/20 pl-2">
+                    {CATEGORIAS.map(c => (
+                      <button key={c.id} onClick={() => goCategory(c)}
+                        className="flex items-center gap-3 px-3 py-3 rounded-md text-left text-sm text-white/80 hover:text-white hover:bg-[#1FE620]/10 border border-transparent hover:border-[#1FE620]/30 transition-all">
+                        <span className="text-lg leading-none">{c.icon}</span>
+                        <span className="font-bold uppercase tracking-wider text-xs">{c.nombre}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
               <button key={l.id} onClick={() => go(l)}
                 style={{ animationDelay: `${i * 40}ms` }}
                 className={`group text-left px-4 py-4 rounded-md font-bold uppercase tracking-wider border border-white/5 hover:border-[#1FE620]/40 hover:bg-[#1FE620]/5 transition-all flex items-center justify-between
