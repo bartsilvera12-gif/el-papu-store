@@ -287,6 +287,14 @@ function SectionHeader({ eyebrow, title, subtitle, action, align = "left" }) {
 function ProductCard({ product, rank }) {
   const { addToCart, navigate } = useShop();
   const discount = product.precioAnterior ? Math.round((1 - product.precio / product.precioAnterior) * 100) : 0;
+  const [picking, setPicking] = useState(false);
+  const [qty, setQty] = useState(1);
+
+  const openPicker = (e) => { e.stopPropagation(); setQty(1); setPicking(true); };
+  const closePicker = (e) => { if (e) e.stopPropagation(); setPicking(false); };
+  const dec = (e) => { e.stopPropagation(); setQty(q => Math.max(1, q - 1)); };
+  const inc = (e) => { e.stopPropagation(); setQty(q => Math.min(99, q + 1)); };
+  const confirm = (e) => { e.stopPropagation(); addToCart(product, qty); setPicking(false); };
 
   return (
     <div className="group relative bg-[#0d0d0d] border border-white/5 rounded-lg overflow-hidden transition-all duration-300 hover:border-[#1FE620]/60 hover:shadow-[0_0_36px_rgba(31,230,32,0.18)] hover:-translate-y-1 flex flex-col">
@@ -329,20 +337,46 @@ function ProductCard({ product, rank }) {
           </div>
           <span className="text-white/40">({product.reviews})</span>
         </div>
-        <div className="mt-auto flex items-end justify-between gap-2 pt-2">
-          <div>
-            {product.precioAnterior && (
-              <div className="text-white/40 line-through text-xs">{fmt(product.precioAnterior)}</div>
-            )}
-            <div className="text-white font-display text-2xl tracking-wide">
-              {fmt(product.precio)}
+        <div className="mt-auto pt-2">
+          {!picking ? (
+            <div className="flex items-end justify-between gap-2">
+              <div>
+                {product.precioAnterior && (
+                  <div className="text-white/40 line-through text-xs">{fmt(product.precioAnterior)}</div>
+                )}
+                <div className="text-white font-display text-2xl tracking-wide">
+                  {fmt(product.precio)}
+                </div>
+              </div>
+              <button onClick={openPicker}
+                aria-label="Agregar"
+                className="w-11 h-11 shrink-0 bg-white hover:bg-white text-black rounded-md flex items-center justify-center transition-all ring-1 ring-[#1FE620]/40 hover:ring-[#1FE620] hover:shadow-[0_0_20px_rgba(31,230,32,0.5)] active:scale-95">
+                <Icon name="plus" />
+              </button>
             </div>
-          </div>
-          <button onClick={(e) => { e.stopPropagation(); addToCart(product); }}
-            aria-label="Agregar"
-            className="w-11 h-11 shrink-0 bg-white hover:bg-white text-black rounded-md flex items-center justify-center transition-all ring-1 ring-[#1FE620]/40 hover:ring-[#1FE620] hover:shadow-[0_0_20px_rgba(31,230,32,0.5)] active:scale-95">
-            <Icon name="plus" />
-          </button>
+          ) : (
+            <div className="flex items-center gap-2 animate-fadeup">
+              <div className="flex items-center bg-black/40 border border-[#1FE620]/40 rounded-md overflow-hidden">
+                <button onClick={dec} aria-label="Restar"
+                  className="w-9 h-10 flex items-center justify-center text-white hover:bg-[#1FE620]/10 active:scale-95 transition">
+                  <Icon name="minus" className="w-4 h-4" />
+                </button>
+                <span className="w-8 text-center font-display text-lg text-white tabular-nums">{qty}</span>
+                <button onClick={inc} aria-label="Sumar"
+                  className="w-9 h-10 flex items-center justify-center text-white hover:bg-[#1FE620]/10 active:scale-95 transition">
+                  <Icon name="plus" className="w-4 h-4" />
+                </button>
+              </div>
+              <button onClick={confirm}
+                className="flex-1 h-10 bg-white text-black rounded-md font-bold text-xs uppercase tracking-wider ring-1 ring-[#1FE620]/40 hover:ring-[#1FE620] hover:shadow-[0_0_18px_rgba(31,230,32,0.5)] active:scale-95 transition">
+                Agregar
+              </button>
+              <button onClick={closePicker} aria-label="Cancelar"
+                className="w-9 h-10 flex items-center justify-center text-white/60 hover:text-white transition">
+                <Icon name="x" className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
