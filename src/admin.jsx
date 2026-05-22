@@ -216,12 +216,14 @@ var AdminApp = (function () {
 
   function StockChip(props) {
     var n = Number(props.stock) || 0;
+    var min = Number(props.min) || 0;
     var cls;
-    if (n === 0) cls = "text-red-400 bg-red-500/10 border-red-500/30";
-    else if (n < 10) cls = "text-yellow-400 bg-yellow-500/10 border-yellow-500/30";
-    else cls = "text-[#1FE620] bg-[#1FE620]/10 border-[#1FE620]/25";
+    var title;
+    if (n === 0) { cls = "text-red-400 bg-red-500/10 border-red-500/30"; title = "Sin stock"; }
+    else if (min > 0 && n <= min) { cls = "text-yellow-400 bg-yellow-500/10 border-yellow-500/30"; title = "Stock bajo (mínimo: " + min + ")"; }
+    else { cls = "text-[#1FE620] bg-[#1FE620]/10 border-[#1FE620]/25"; title = min > 0 ? ("Mínimo: " + min) : "OK"; }
     return (
-      <span className={"inline-flex items-center justify-center min-w-[40px] px-2 py-0.5 rounded-md text-xs font-bold border " + cls}>{n}</span>
+      <span title={title} className={"inline-flex items-center justify-center min-w-[40px] px-2 py-0.5 rounded-md text-xs font-bold border " + cls}>{n}</span>
     );
   }
 
@@ -487,10 +489,17 @@ var AdminApp = (function () {
     var statusFilter = statusFilterState[0];
     var setStatusFilter = statusFilterState[1];
 
+    function isLowStock(r) {
+      var s = r.stock || 0;
+      var m = r.min_stock || 0;
+      if (s === 0) return true;
+      return m > 0 && s <= m;
+    }
+
     var filtered = rows.filter(function (r) {
       if (statusFilter === "active" && !r.is_active) return false;
       if (statusFilter === "inactive" && r.is_active) return false;
-      if (statusFilter === "low-stock" && (r.stock || 0) >= 10) return false;
+      if (statusFilter === "low-stock" && !isLowStock(r)) return false;
       if (!query) return true;
       var q = query.toLowerCase();
       return r.name.toLowerCase().indexOf(q) !== -1 || (r.sku || "").toLowerCase().indexOf(q) !== -1;
@@ -499,7 +508,7 @@ var AdminApp = (function () {
     var stats = {
       total: rows.length,
       active: rows.filter(function (r) { return r.is_active; }).length,
-      lowStock: rows.filter(function (r) { return (r.stock || 0) < 10; }).length,
+      lowStock: rows.filter(isLowStock).length,
     };
 
     var filterTabs = [
@@ -593,8 +602,8 @@ var AdminApp = (function () {
                         <div className="text-white/40 text-[11px] line-through tabular-nums">Gs. {r.compare_at_price.toLocaleString("es-PY")}</div>
                       ) : null}
                     </div>
-                    {/* Stock chip */}
-                    <div><StockChip stock={r.stock} /></div>
+                    {/* Stock chip (color según min_stock) */}
+                    <div><StockChip stock={r.stock} min={r.min_stock} /></div>
                     {/* Toggle activo */}
                     <div className="flex items-center gap-2">
                       <Toggle checked={r.is_active} onChange={function () { toggleActive(r); }} label="Activar/Desactivar" />
@@ -639,6 +648,7 @@ var AdminApp = (function () {
       price: p.price != null ? p.price : 0,
       compare_at_price: p.compare_at_price != null ? p.compare_at_price : "",
       stock: p.stock != null ? p.stock : 0,
+      min_stock: p.min_stock != null ? p.min_stock : 0,
       badge: p.badge || "",
       image_url: p.image_url || "",
       color: p.color || "from-emerald-500/20 to-black",
@@ -654,6 +664,7 @@ var AdminApp = (function () {
         price: Number(f.price) || 0,
         compare_at_price: f.compare_at_price === "" ? null : (Number(f.compare_at_price) || null),
         stock: Number(f.stock) || 0,
+        min_stock: Number(f.min_stock) || 0,
         display_order: Number(f.display_order) || 0,
         category_id: f.category_id || null,
         badge: f.badge || null,
@@ -683,7 +694,8 @@ var AdminApp = (function () {
           </Field>
           <Field label="Precio (Gs.)"><TextInput type="number" value={f.price} onChange={function (v) { set("price", v); }} /></Field>
           <Field label="Precio anterior (opcional)"><TextInput type="number" value={f.compare_at_price} onChange={function (v) { set("compare_at_price", v); }} /></Field>
-          <Field label="Stock"><TextInput type="number" value={f.stock} onChange={function (v) { set("stock", v); }} /></Field>
+          <Field label="Stock actual"><TextInput type="number" value={f.stock} onChange={function (v) { set("stock", v); }} /></Field>
+          <Field label="Stock mínimo" hint="alerta cuando el stock baja de este nivel (0 = sin alerta)"><TextInput type="number" value={f.min_stock} onChange={function (v) { set("min_stock", v); }} /></Field>
           <Field label="Badge">
             <select value={f.badge || ""} onChange={function (e) { set("badge", e.target.value); }}
               className="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2.5 text-white text-sm">
