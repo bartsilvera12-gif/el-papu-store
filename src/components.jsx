@@ -117,7 +117,7 @@ function Logo({ size = "md", onClick }) {
   return (
     <button onClick={onClick} className="flex items-center gap-2 group select-none cursor-pointer">
       <div className={`${sizes[size]} aspect-square overflow-hidden rounded-md ring-1 ring-[#1FE620]/40 group-hover:ring-[#1FE620] group-hover:shadow-[0_0_20px_rgba(31,230,32,0.5)] transition-all`}>
-        <img src="assets/logo.png" alt="El Papu Store" className="w-full h-full object-cover" />
+        <img src="/assets/logo.png" alt="El Papu Store" className="w-full h-full object-cover" />
       </div>
       <div className="leading-none hidden sm:block">
         <div className="font-display text-xl tracking-wider text-white">EL PAPU</div>
