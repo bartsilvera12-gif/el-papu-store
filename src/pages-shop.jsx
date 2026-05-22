@@ -1,6 +1,64 @@
 // Shop pages: Catálogo, Detalle, Carrito (page)
 
-const { useState: useStateShop, useMemo: useMemoShop } = React;
+const { useState: useStateShop, useMemo: useMemoShop, useRef: useRefShop, useEffect: useEffectShop } = React;
+
+// ----------------------- Dropdown personalizado para ordenar -----------------------
+
+function SortDropdown({ value, onChange }) {
+  const options = [
+    { v: "relevancia", l: "Relevancia", icon: "sparkles" },
+    { v: "precio-asc", l: "Precio: menor a mayor", icon: "arrow-up" },
+    { v: "precio-desc", l: "Precio: mayor a menor", icon: "arrow-down" },
+    { v: "novedad", l: "Novedad", icon: "bolt" },
+  ];
+  const current = options.find(o => o.v === value) || options[0];
+  const [open, setOpen] = useStateShop(false);
+  const ref = useRefShop(null);
+
+  useEffectShop(() => {
+    if (!open) return;
+    const onDocClick = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button type="button" onClick={() => setOpen(o => !o)}
+        className={`group flex items-center gap-2.5 min-w-[200px] bg-[#0d0d0d] border rounded-md pl-3 pr-2 py-2 text-sm text-white transition-all
+          ${open ? "border-[#1FE620] shadow-[0_0_18px_rgba(31,230,32,0.25)]" : "border-white/10 hover:border-[#1FE620]/50"}`}>
+        <Icon name={current.icon} className="w-4 h-4 text-[#1FE620]" />
+        <span className="flex-1 text-left truncate">{current.l}</span>
+        <span className={`w-7 h-7 flex items-center justify-center rounded-md bg-[#1FE620]/10 text-[#1FE620] transition-transform ${open ? "rotate-180" : ""}`}>
+          <Icon name="chevron-down" className="w-4 h-4" />
+        </span>
+      </button>
+      {open && (
+        <div className="absolute top-full right-0 mt-2 w-[260px] bg-[#0a0a0a] border border-[#1FE620]/30 rounded-lg shadow-[0_10px_40px_rgba(0,0,0,0.6),0_0_30px_rgba(31,230,32,0.15)] overflow-hidden z-40 animate-fadeup">
+          <div className="px-3 pt-3 pb-1 text-[10px] uppercase tracking-[0.3em] text-[#1FE620] font-bold">Ordenar por</div>
+          <div className="p-1.5">
+            {options.map(o => {
+              const active = o.v === value;
+              return (
+                <button key={o.v} type="button" onClick={() => { onChange(o.v); setOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-left text-sm transition-all border
+                    ${active
+                      ? "bg-[#1FE620]/10 border-[#1FE620]/40 text-white"
+                      : "border-transparent text-white/75 hover:text-white hover:bg-white/5 hover:border-white/10"}`}>
+                  <Icon name={o.icon} className={`w-4 h-4 ${active ? "text-[#1FE620]" : "text-white/50"}`} />
+                  <span className="flex-1">{o.l}</span>
+                  {active && <Icon name="check" className="w-4 h-4 text-[#1FE620]" />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ----------------------- Catálogo -----------------------
 
@@ -117,15 +175,9 @@ function CatalogoPage() {
         <div>
           <div className="flex items-center justify-between gap-3 mb-6 flex-wrap">
             <div className="text-white/60 text-sm">{filtered.length} productos</div>
-            <div className="flex items-center gap-2">
-              <span className="text-white/40 text-xs uppercase tracking-wider hidden sm:inline">Ordenar:</span>
-              <select value={sort} onChange={(e) => setSort(e.target.value)}
-                className="bg-[#0d0d0d] border border-white/10 text-white text-sm rounded-md px-3 py-2 outline-none focus:border-[#1FE620]/60">
-                <option value="relevancia">Relevancia</option>
-                <option value="precio-asc">Precio: menor a mayor</option>
-                <option value="precio-desc">Precio: mayor a menor</option>
-                <option value="novedad">Novedad</option>
-              </select>
+            <div className="flex items-center gap-3">
+              <span className="text-white/40 text-xs uppercase tracking-[0.3em] hidden sm:inline font-bold">Ordenar</span>
+              <SortDropdown value={sort} onChange={setSort} />
             </div>
           </div>
 
