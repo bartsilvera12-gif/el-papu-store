@@ -787,7 +787,6 @@ var AdminApp = (function () {
         <div className="grid sm:grid-cols-2 gap-4">
           <Field label="Nombre"><TextInput value={f.name} onChange={function (v) { set("name", v); }} /></Field>
           <Field label="Slug" hint="único, sin espacios"><TextInput value={f.slug} onChange={function (v) { set("slug", v); }} /></Field>
-          <Field label="SKU"><TextInput value={f.sku} onChange={function (v) { set("sku", v); }} /></Field>
           <Field label="Categoría">
             <Select
               value={f.category_id || ""}
