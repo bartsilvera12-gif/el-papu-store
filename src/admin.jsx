@@ -771,20 +771,6 @@ var AdminApp = (function () {
           <Field label="Precio anterior (opcional)"><TextInput type="number" value={f.compare_at_price} onChange={function (v) { set("compare_at_price", v); }} /></Field>
           <Field label="Stock actual"><TextInput type="number" value={f.stock} onChange={function (v) { set("stock", v); }} /></Field>
           <Field label="Stock mínimo" hint="alerta cuando el stock baja de este nivel (0 = sin alerta)"><TextInput type="number" value={f.min_stock} onChange={function (v) { set("min_stock", v); }} /></Field>
-          <Field label="Badge">
-            <Select
-              value={f.badge || ""}
-              onChange={function (v) { set("badge", v); }}
-              placeholder="— ninguno —"
-              options={[
-                { value: "", label: "— ninguno —" },
-                { value: "viral", label: "Viral", icon: "🔥", hint: "destaca como producto viral" },
-                { value: "oferta", label: "Oferta", icon: "🏷️", hint: "marca como producto en oferta" },
-                { value: "nuevo", label: "Nuevo", icon: "✨", hint: "marca como recién ingresado" },
-                { value: "top", label: "Top", icon: "🏆", hint: "más vendidos" },
-              ]}
-            />
-          </Field>
           <div className="sm:col-span-2">
             <Field label="URL de imagen principal"><TextInput value={f.image_url} onChange={function (v) { set("image_url", v); }} placeholder="https://..." /></Field>
           </div>
