@@ -684,7 +684,7 @@ var AdminApp = (function () {
           <Field label="Precio (Gs.)"><TextInput type="number" value={f.price} onChange={function (v) { set("price", v); }} /></Field>
           <Field label="Precio anterior (opcional)"><TextInput type="number" value={f.compare_at_price} onChange={function (v) { set("compare_at_price", v); }} /></Field>
           <Field label="Stock"><TextInput type="number" value={f.stock} onChange={function (v) { set("stock", v); }} /></Field>
-          <Field label="Badge" hint="viral | oferta | nuevo | top">
+          <Field label="Badge">
             <select value={f.badge || ""} onChange={function (e) { set("badge", e.target.value); }}
               className="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2.5 text-white text-sm">
               <option value="">— ninguno —</option>
