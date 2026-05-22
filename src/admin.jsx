@@ -709,6 +709,16 @@ var AdminApp = (function () {
     var cats = props.cats || [];
     var firstCat = cats[0] || {};
     var isNew = !props.product;
+
+    // Inferir descuento desde producto existente:
+    // si hay compare_at_price > price, inicializa como monto fijo.
+    var initDiscountType = "";
+    var initDiscountValue = 0;
+    if (p.compare_at_price && p.price && p.compare_at_price > p.price) {
+      initDiscountType = "amount";
+      initDiscountValue = p.compare_at_price - p.price;
+    }
+
     var fState = useState({
       name: p.name || "",
       slug: p.slug || "",
@@ -718,7 +728,8 @@ var AdminApp = (function () {
       description: p.description || "",
       features: Array.isArray(p.features) ? p.features.join("\n") : "",
       price: p.price != null ? p.price : 0,
-      compare_at_price: p.compare_at_price != null ? p.compare_at_price : "",
+      discount_type: initDiscountType,
+      discount_value: initDiscountValue,
       stock: p.stock != null ? p.stock : 0,
       min_stock: p.min_stock != null ? p.min_stock : 0,
       badge: p.badge || "",
@@ -731,16 +742,36 @@ var AdminApp = (function () {
     var f = fState[0];
     var setF = fState[1];
     function set(k, v) { setF(Object.assign({}, f, (function () { var o = {}; o[k] = v; return o; })())); }
+
+    // Cálculo de compare_at_price desde price + descuento.
+    function calcCompareAtPrice() {
+      var price = Number(f.price) || 0;
+      var dv = Number(f.discount_value) || 0;
+      if (!f.discount_type || dv <= 0 || price <= 0) return null;
+      if (f.discount_type === "percent") {
+        if (dv >= 100) return null;
+        return Math.round(price / (1 - dv / 100));
+      }
+      if (f.discount_type === "amount") {
+        return price + dv;
+      }
+      return null;
+    }
+    var calcCompare = calcCompareAtPrice();
+
     function submit() {
       var payload = Object.assign({}, f, {
         price: Number(f.price) || 0,
-        compare_at_price: f.compare_at_price === "" ? null : (Number(f.compare_at_price) || null),
+        compare_at_price: calcCompare,
         stock: Number(f.stock) || 0,
         min_stock: Number(f.min_stock) || 0,
         display_order: Number(f.display_order) || 0,
         category_id: f.category_id || null,
         badge: f.badge || null,
       });
+      // Limpiar campos auxiliares que no son columnas en la DB.
+      delete payload.discount_type;
+      delete payload.discount_value;
       props.onSave(payload);
     }
 
@@ -767,8 +798,39 @@ var AdminApp = (function () {
               )}
             />
           </Field>
-          <Field label="Precio (Gs.)"><TextInput type="number" value={f.price} onChange={function (v) { set("price", v); }} /></Field>
-          <Field label="Precio anterior (opcional)"><TextInput type="number" value={f.compare_at_price} onChange={function (v) { set("compare_at_price", v); }} /></Field>
+          <Field label="Precio (Gs.)" hint="lo que paga el cliente"><TextInput type="number" value={f.price} onChange={function (v) { set("price", v); }} /></Field>
+          <div className="sm:col-span-2">
+            <Field label="Descuento" hint={calcCompare ? ("Precio normal calculado: Gs. " + calcCompare.toLocaleString("es-PY") + " · El cliente ahorra Gs. " + (calcCompare - (Number(f.price) || 0)).toLocaleString("es-PY")) : "Si aplicás descuento, el precio normal aparece tachado en la tienda."}>
+              <div className="grid grid-cols-[1fr_140px] gap-2 items-stretch">
+                <Select
+                  value={f.discount_type || ""}
+                  onChange={function (v) {
+                    if (!v) setF(Object.assign({}, f, { discount_type: "", discount_value: 0 }));
+                    else set("discount_type", v);
+                  }}
+                  options={[
+                    { value: "", label: "Sin descuento", icon: "•" },
+                    { value: "percent", label: "Porcentaje (%)", icon: "%" },
+                    { value: "amount", label: "Monto fijo (Gs.)", icon: "Gs" },
+                  ]}
+                />
+                <div className="relative">
+                  <input
+                    type="number"
+                    value={f.discount_value}
+                    disabled={!f.discount_type}
+                    min="0"
+                    max={f.discount_type === "percent" ? 99 : undefined}
+                    onChange={function (e) { set("discount_value", e.target.value); }}
+                    className="w-full bg-[#111] border border-white/10 focus:border-[#1FE620]/60 outline-none rounded-md pl-3 pr-10 py-2.5 text-white text-sm placeholder:text-white/30 disabled:opacity-50 disabled:cursor-not-allowed transition tabular-nums"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 text-xs font-bold uppercase tracking-wider pointer-events-none">
+                    {f.discount_type === "percent" ? "%" : (f.discount_type === "amount" ? "Gs." : "")}
+                  </span>
+                </div>
+              </div>
+            </Field>
+          </div>
           <Field label="Stock actual"><TextInput type="number" value={f.stock} onChange={function (v) { set("stock", v); }} /></Field>
           <Field label="Stock mínimo" hint="alerta cuando el stock baja de este nivel (0 = sin alerta)"><TextInput type="number" value={f.min_stock} onChange={function (v) { set("min_stock", v); }} /></Field>
           <div className="sm:col-span-2">
