@@ -131,7 +131,7 @@ const AdminApp = (function () {
   }
   function TextInput({ value, onChange, type = "text", placeholder = "", ...rest }) {
     return (
-      <input type={type} value={value ?? ""} placeholder={placeholder}
+      <input type={type} value={value == null ? "" : value} placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
         className="w-full bg-[#111] border border-white/10 focus:border-[#1FE620]/60 outline-none rounded-md px-3 py-2.5 text-white text-sm placeholder:text-white/30 transition"
         {...rest} />
@@ -139,7 +139,7 @@ const AdminApp = (function () {
   }
   function TextArea({ value, onChange, rows = 4, placeholder = "" }) {
     return (
-      <textarea value={value ?? ""} placeholder={placeholder} rows={rows}
+      <textarea value={value == null ? "" : value} placeholder={placeholder} rows={rows}
         onChange={(e) => onChange(e.target.value)}
         className="w-full bg-[#111] border border-white/10 focus:border-[#1FE620]/60 outline-none rounded-md px-3 py-2.5 text-white text-sm placeholder:text-white/30 transition resize-y" />
     );
@@ -220,7 +220,7 @@ const AdminApp = (function () {
             <Btn type="submit" disabled={submitting || !email || !pass} className="w-full">
               {submitting ? "Ingresando..." : "Ingresar"}
             </Btn>
-            {!window.isSupabaseConfigured?.() && (
+            {!(window.isSupabaseConfigured && window.isSupabaseConfigured()) && (
               <div className="text-[10px] text-yellow-400/80 bg-yellow-500/5 border border-yellow-500/20 rounded p-2">
                 Supabase no está configurado todavía. Definí URL/anon key en <code>src/supabase-client.jsx</code> o <code>window.__PAPU_CONFIG__</code>.
               </div>
@@ -261,7 +261,7 @@ const AdminApp = (function () {
           <div className="p-3 border-t border-white/5">
             <div className="px-3 py-2 text-xs">
               <div className="text-white/40">Sesión</div>
-              <div className="text-white truncate">{adminProfile?.email || "—"}</div>
+              <div className="text-white truncate">{(adminProfile && adminProfile.email) || "—"}</div>
             </div>
             <Btn variant="ghost" onClick={logout} className="w-full">Cerrar sesión</Btn>
           </div>
@@ -430,23 +430,25 @@ const AdminApp = (function () {
 
   function ProductEditor({ product, cats, onClose, onSave }) {
     const isNew = !product;
+    const p = product || {};
+    const firstCat = cats[0] || {};
     const [f, setF] = useState({
-      name: product?.name || "",
-      slug: product?.slug || "",
-      sku: product?.sku || "",
-      category_id: product?.category_id || (cats[0]?.id || ""),
-      short_description: product?.short_description || "",
-      description: product?.description || "",
-      features: Array.isArray(product?.features) ? product.features.join("\n") : "",
-      price: product?.price ?? 0,
-      compare_at_price: product?.compare_at_price ?? "",
-      stock: product?.stock ?? 0,
-      badge: product?.badge || "",
-      image_url: product?.image_url || "",
-      color: product?.color || "from-emerald-500/20 to-black",
-      is_active: product?.is_active ?? true,
-      is_featured: product?.is_featured ?? false,
-      display_order: product?.display_order ?? 0,
+      name: p.name || "",
+      slug: p.slug || "",
+      sku: p.sku || "",
+      category_id: p.category_id || firstCat.id || "",
+      short_description: p.short_description || "",
+      description: p.description || "",
+      features: Array.isArray(p.features) ? p.features.join("\n") : "",
+      price: p.price != null ? p.price : 0,
+      compare_at_price: p.compare_at_price != null ? p.compare_at_price : "",
+      stock: p.stock != null ? p.stock : 0,
+      badge: p.badge || "",
+      image_url: p.image_url || "",
+      color: p.color || "from-emerald-500/20 to-black",
+      is_active: p.is_active !== false,
+      is_featured: p.is_featured === true,
+      display_order: p.display_order != null ? p.display_order : 0,
     });
     const set = (k, v) => setF(s => ({ ...s, [k]: v }));
     const submit = () => {
@@ -580,13 +582,14 @@ const AdminApp = (function () {
 
   function CategoryEditor({ cat, onClose, onSave }) {
     const isNew = !cat;
+    const c = cat || {};
     const [f, setF] = useState({
-      name: cat?.name || "",
-      slug: cat?.slug || "",
-      description: cat?.description || "",
-      icon: cat?.icon || "🏷️",
-      display_order: cat?.display_order ?? 0,
-      is_active: cat?.is_active ?? true,
+      name: c.name || "",
+      slug: c.slug || "",
+      description: c.description || "",
+      icon: c.icon || "🏷️",
+      display_order: c.display_order != null ? c.display_order : 0,
+      is_active: c.is_active !== false,
     });
     const set = (k, v) => setF(s => ({ ...s, [k]: v }));
     const submit = () => onSave({ ...f, display_order: Number(f.display_order) || 0 });
@@ -792,11 +795,12 @@ const AdminApp = (function () {
 
   function FaqEditor({ faq, onClose, onSave }) {
     const isNew = !faq;
+    const q = faq || {};
     const [f, setF] = useState({
-      question: faq?.question || "",
-      answer: faq?.answer || "",
-      display_order: faq?.display_order ?? 0,
-      is_active: faq?.is_active ?? true,
+      question: q.question || "",
+      answer: q.answer || "",
+      display_order: q.display_order != null ? q.display_order : 0,
+      is_active: q.is_active !== false,
     });
     const set = (k, v) => setF(s => ({ ...s, [k]: v }));
     return (

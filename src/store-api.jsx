@@ -130,7 +130,7 @@ const PapuStoreAPI = (function () {
       });
 
       if (error) throw error;
-      return { ok: true, order_code: data?.order_code || fallbackCode, order_id: data?.order_id };
+      return { ok: true, order_code: (data && data.order_code) || fallbackCode, order_id: data && data.order_id };
     } catch (err) {
       console.warn("[papu] Error creando pedido en Supabase, fallback a código local:", err.message || err);
       return { ok: false, fallback: true, order_code: fallbackCode, error: err };
