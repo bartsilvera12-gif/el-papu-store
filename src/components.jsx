@@ -17,6 +17,19 @@ function ShopProvider({ children }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [toast, setToast] = useState({ show: false, message: "" });
   const toastTimer = useRef(null);
+  const [dataVersion, setDataVersion] = useState(0);
+
+  // Intentar cargar datos desde Supabase al montar; si falla queda el mock de data.jsx
+  useEffect(() => {
+    if (window.PapuStoreAPI && window.PapuStoreAPI.loadInitialData) {
+      window.PapuStoreAPI.loadInitialData().then(res => {
+        if (res && res.loaded) setDataVersion(v => v + 1);
+      });
+    }
+    const onLoaded = () => setDataVersion(v => v + 1);
+    window.addEventListener("papu:data-loaded", onLoaded);
+    return () => window.removeEventListener("papu:data-loaded", onLoaded);
+  }, []);
 
   const navigate = (name, params = {}) => {
     setRoute({ name, params });
@@ -55,6 +68,7 @@ function ShopProvider({ children }) {
       searchOpen, setSearchOpen,
       searchTerm, setSearchTerm,
       toast, showToast,
+      dataVersion,
     }}>
       {children}
     </ShopContext.Provider>

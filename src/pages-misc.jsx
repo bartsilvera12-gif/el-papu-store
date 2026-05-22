@@ -12,16 +12,32 @@ function CheckoutPage() {
     entrega: "envio", pago: "transferencia",
   });
   const [step, setStep] = useStateMisc(1);
+  const [submitting, setSubmitting] = useStateMisc(false);
 
   const handle = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   const envio = form.entrega === "envio" ? 3500 : 0;
   const total = cartTotal + envio;
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e?.preventDefault();
+    if (submitting) return;
+    setSubmitting(true);
+    let order_code = "PAPU-" + Math.floor(10000 + Math.random() * 90000);
+    try {
+      if (window.PapuStoreAPI && window.PapuStoreAPI.createOrder) {
+        const res = await window.PapuStoreAPI.createOrder({
+          cart, form, totals: { subtotal: cartTotal, envio, total },
+        });
+        if (res && res.order_code) order_code = res.order_code;
+      }
+    } catch (err) {
+      console.warn("[papu] checkout: usando código local por fallo:", err);
+    }
+    window.__PAPU_LAST_ORDER__ = { order_code, total, at: Date.now() };
     navigate("success");
     setTimeout(() => clearCart(), 1500);
+    setSubmitting(false);
   };
 
   if (cart.length === 0) {
@@ -145,8 +161,8 @@ function CheckoutPage() {
                   <span className="font-display text-3xl text-white">{fmt(total)}</span>
                 </div>
               </div>
-              <GlowButton type="submit" className="w-full mt-5">
-                Confirmar pedido <Icon name="check" className="w-4 h-4" />
+              <GlowButton type="submit" className="w-full mt-5" disabled={submitting}>
+                {submitting ? "Procesando..." : (<>Confirmar pedido <Icon name="check" className="w-4 h-4" /></>)}
               </GlowButton>
               <div className="flex items-center gap-2 text-xs text-white/40 mt-3">
                 <Icon name="shield" className="w-3.5 h-3.5" /> Compra segura · Datos protegidos
@@ -207,7 +223,7 @@ function SuccessPage() {
           <div className="flex justify-between items-center mb-3 pb-3 border-b border-white/5">
             <div>
               <div className="text-[10px] uppercase tracking-[0.3em] text-[#1FE620] font-bold">Número de pedido</div>
-              <div className="text-white font-display text-2xl">#PAPU-{Math.floor(10000 + Math.random() * 90000)}</div>
+              <div className="text-white font-display text-2xl">#{(window.__PAPU_LAST_ORDER__ && window.__PAPU_LAST_ORDER__.order_code) || ("PAPU-" + Math.floor(10000 + Math.random() * 90000))}</div>
             </div>
             <Badge kind="viral">Confirmado</Badge>
           </div>

@@ -22,7 +22,7 @@ function ToastHost() {
   return <Toast show={toast.show} message={toast.message} />;
 }
 
-function App() {
+function PublicApp() {
   return (
     <ShopProvider>
       <div className="bg-[#050505] text-white min-h-screen">
@@ -39,6 +39,19 @@ function App() {
       </div>
     </ShopProvider>
   );
+}
+
+// Montar admin o público según la ruta. El admin NO aparece en el sitio público;
+// solo se accede entrando directamente por URL /admin/* (con vercel.json sirviendo
+// el index.html para esas rutas).
+function App() {
+  const path = window.location.pathname || "/";
+  const isAdmin = path === "/admin" || path.startsWith("/admin/");
+  if (isAdmin && window.AdminApp && window.AdminApp.App) {
+    const AdminRoot = window.AdminApp.App;
+    return <AdminRoot />;
+  }
+  return <PublicApp />;
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(<App />);
