@@ -190,15 +190,13 @@
   <!-- Supabase JS (UMD). Si todavía no configurás URL+anon key, el sitio funciona con mock. -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <!-- Config opcional: definir antes de supabase-client.jsx -->
-  <!--
+  <!-- Config de Supabase (anon key es pública, RLS protege los datos) -->
   <script>
     window.__PAPU_CONFIG__ = {
-      SUPABASE_URL: "https://xxxxxxx.supabase.co",
-      SUPABASE_ANON_KEY: "ey...."
+      SUPABASE_URL: "https://api.neura.com.py",
+      SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzc0MTAxNDYxLCJleHAiOjE5MzE3ODE0NjF9.7_wAph8IolPMXtgfpezSwS5XR62IdD__qhqCywLDp3Q"
     };
   </script>
-  -->
 
   <!-- App scripts (paths absolutos: necesarios para que /admin/login funcione) -->
   <script type="text/babel" data-presets="react" src="/src/data.jsx"></script>
