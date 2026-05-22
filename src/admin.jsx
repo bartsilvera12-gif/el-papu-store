@@ -836,8 +836,6 @@ var AdminApp = (function () {
           <div className="sm:col-span-2">
             <Field label="URL de imagen principal"><TextInput value={f.image_url} onChange={function (v) { set("image_url", v); }} placeholder="https://..." /></Field>
           </div>
-          <Field label="Color (gradiente Tailwind)"><TextInput value={f.color} onChange={function (v) { set("color", v); }} placeholder="from-emerald-500/20 to-black" /></Field>
-          <Field label="Orden"><TextInput type="number" value={f.display_order} onChange={function (v) { set("display_order", v); }} /></Field>
           <div className="sm:col-span-2">
             <Field label="Descripción corta"><TextArea rows={2} value={f.short_description} onChange={function (v) { set("short_description", v); }} /></Field>
           </div>
