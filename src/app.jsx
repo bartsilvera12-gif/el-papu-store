@@ -1,6 +1,20 @@
 // Main app - El Papu Store
 const { useState: useStateApp } = React;
 
+// Captura errores globales para diagnosticar bugs de Babel/runtime sin abrir DevTools.
+window.__PAPU_ERRORS__ = window.__PAPU_ERRORS__ || [];
+window.addEventListener("error", (e) => {
+  try {
+    window.__PAPU_ERRORS__.push({
+      msg: e.message,
+      filename: e.filename,
+      lineno: e.lineno,
+      colno: e.colno,
+      stack: e.error && e.error.stack ? String(e.error.stack).split("\n").slice(0, 5).join("\n") : "",
+    });
+  } catch (_) {}
+});
+
 function Router() {
   const { route } = useShop();
   switch (route.name) {
@@ -76,15 +90,27 @@ function App() {
           {!showError ? (
             <div className="text-white/40 text-sm uppercase tracking-[0.3em]">Cargando admin...</div>
           ) : (
-            <div>
-              <div className="font-display text-3xl mb-3 text-red-400">Error cargando admin</div>
-              <p className="text-white/60 text-sm mb-3">
+            <div className="text-left">
+              <div className="font-display text-3xl mb-3 text-red-400 text-center">Error cargando admin</div>
+              <p className="text-white/60 text-sm mb-3 text-center">
                 El script <code>/src/admin.jsx</code> no se montó.
-                Abrí DevTools (F12) → Console y revisá el primer error rojo.
               </p>
-              <p className="text-white/40 text-xs font-mono">
-                window.AdminApp = {String(typeof window.AdminApp)}
+              <p className="text-white/40 text-xs font-mono text-center mb-3">
+                AdminApp={String(typeof window.AdminApp)} · loaded={String(Boolean(window.__ADMIN_JSX_LOADED__))} · done={String(Boolean(window.__ADMIN_JSX_DONE__))}
               </p>
+              <div className="bg-black/50 border border-red-500/30 rounded p-3 text-[11px] font-mono text-red-300 max-h-72 overflow-auto">
+                {window.__PAPU_ERRORS__ && window.__PAPU_ERRORS__.length > 0 ? (
+                  window.__PAPU_ERRORS__.map((er, i) => (
+                    <div key={i} className="mb-2 pb-2 border-b border-red-500/10">
+                      <div className="text-red-400 font-bold">{er.msg}</div>
+                      <div className="text-white/40">{er.filename}:{er.lineno}:{er.colno}</div>
+                      {er.stack && <pre className="text-white/30 whitespace-pre-wrap">{er.stack}</pre>}
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-white/40">No se capturaron errores globales. Mirá DevTools → Console.</div>
+                )}
+              </div>
             </div>
           )}
         </div>

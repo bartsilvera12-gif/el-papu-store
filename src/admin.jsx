@@ -6,6 +6,9 @@
 // Usa Supabase Auth (email/password). Valida que el usuario autenticado
 // exista en elpapustore.admin_users (is_active=true) — sino, signOut.
 
+// Centinela: si Babel compila este archivo y JS lo ejecuta, esto se setea.
+window.__ADMIN_JSX_LOADED__ = true;
+
 const AdminApp = (function () {
   const { useState, useEffect, useMemo, useCallback, createContext, useContext } = React;
 
@@ -875,3 +878,4 @@ const AdminApp = (function () {
 })();
 
 window.AdminApp = AdminApp;
+window.__ADMIN_JSX_DONE__ = true;
