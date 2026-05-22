@@ -202,7 +202,7 @@ function CatalogoPage() {
 
 function DetallePage() {
   const { PRODUCTS } = window.__PAPU_DATA__;
-  const { route, addToCart, navigate, setCartOpen } = useShop();
+  const { route, addToCart, navigate } = useShop();
   const product = PRODUCTS.find(p => p.id === route.params?.id) || PRODUCTS[0];
   const [qty, setQty] = useStateShop(1);
   const [activeImg, setActiveImg] = useStateShop(0);
@@ -217,7 +217,7 @@ function DetallePage() {
   const related = PRODUCTS.filter(p => p.categoria === product.categoria && p.id !== product.id).slice(0, 4);
   const discount = product.precioAnterior ? Math.round((1 - product.precio / product.precioAnterior) * 100) : 0;
 
-  const handleAdd = () => { addToCart(product, qty); setCartOpen(true); };
+  const handleAdd = () => { addToCart(product, qty); };
   const handleBuy = () => { addToCart(product, qty); navigate("checkout"); };
 
   return (
