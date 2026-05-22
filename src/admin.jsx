@@ -203,6 +203,37 @@ var AdminApp = (function () {
     );
   }
 
+  function Toggle(props) {
+    var checked = !!props.checked;
+    var trackCls = "relative inline-flex items-center w-10 h-5 rounded-full transition cursor-pointer " + (checked ? "bg-[#1FE620]" : "bg-white/10");
+    var thumbCls = "absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform " + (checked ? "translate-x-[22px]" : "translate-x-0.5");
+    return (
+      <button type="button" onClick={props.onChange} aria-label={props.label || "toggle"} className={trackCls}>
+        <span className={thumbCls}></span>
+      </button>
+    );
+  }
+
+  function StockChip(props) {
+    var n = Number(props.stock) || 0;
+    var cls;
+    if (n === 0) cls = "text-red-400 bg-red-500/10 border-red-500/30";
+    else if (n < 10) cls = "text-yellow-400 bg-yellow-500/10 border-yellow-500/30";
+    else cls = "text-[#1FE620] bg-[#1FE620]/10 border-[#1FE620]/25";
+    return (
+      <span className={"inline-flex items-center justify-center min-w-[40px] px-2 py-0.5 rounded-md text-xs font-bold border " + cls}>{n}</span>
+    );
+  }
+
+  function IconBtn(props) {
+    var cls = "w-8 h-8 flex items-center justify-center rounded-md text-white/60 hover:text-[#1FE620] hover:bg-[#1FE620]/10 border border-transparent hover:border-[#1FE620]/30 transition " + (props.className || "");
+    return (
+      <button type="button" onClick={props.onClick} title={props.title} aria-label={props.title} className={cls}>
+        {props.children}
+      </button>
+    );
+  }
+
   function Modal(props) {
     if (!props.open) return null;
     var widthCls = props.wide ? "max-w-4xl" : "max-w-lg";
@@ -448,46 +479,142 @@ var AdminApp = (function () {
       });
     }
 
+    // mapa para mostrar nombre de categoría
+    var catById = {};
+    cats.forEach(function (c) { catById[c.id] = c; });
+
+    var statusFilterState = useState("all"); // all | active | inactive | low-stock
+    var statusFilter = statusFilterState[0];
+    var setStatusFilter = statusFilterState[1];
+
     var filtered = rows.filter(function (r) {
+      if (statusFilter === "active" && !r.is_active) return false;
+      if (statusFilter === "inactive" && r.is_active) return false;
+      if (statusFilter === "low-stock" && (r.stock || 0) >= 10) return false;
       if (!query) return true;
       var q = query.toLowerCase();
       return r.name.toLowerCase().indexOf(q) !== -1 || (r.sku || "").toLowerCase().indexOf(q) !== -1;
     });
 
+    var stats = {
+      total: rows.length,
+      active: rows.filter(function (r) { return r.is_active; }).length,
+      lowStock: rows.filter(function (r) { return (r.stock || 0) < 10; }).length,
+    };
+
+    var filterTabs = [
+      { id: "all", label: "Todos", count: stats.total },
+      { id: "active", label: "Activos", count: stats.active },
+      { id: "inactive", label: "Inactivos", count: stats.total - stats.active },
+      { id: "low-stock", label: "Stock bajo", count: stats.lowStock },
+    ];
+
     return (
       <React.Fragment>
-        <PageHeader title="Productos" subtitle={rows.length + " en catálogo"}
+        <PageHeader title="Productos" subtitle={stats.total + " en catálogo · " + stats.active + " activos"}
           actions={<Btn onClick={function () { setEditing("new"); }}>+ Nuevo producto</Btn>} />
         <Content>
-          <div className="mb-4">
-            <TextInput value={query} onChange={setQuery} placeholder="Buscar por nombre o SKU..." />
+          {/* Toolbar: search + tabs de filtro */}
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 mb-5">
+            <div className="relative flex-1 max-w-md">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+              </span>
+              <input
+                value={query}
+                onChange={function (e) { setQuery(e.target.value); }}
+                placeholder="Buscar por nombre o SKU..."
+                className="w-full bg-[#0d0d0d] border border-white/10 focus:border-[#1FE620]/60 outline-none rounded-md pl-9 pr-3 py-2.5 text-white text-sm placeholder:text-white/30 transition"
+              />
+            </div>
+            <div className="flex items-center gap-1 bg-[#0d0d0d] border border-white/5 rounded-md p-1 overflow-x-auto">
+              {filterTabs.map(function (t) {
+                var isActive = statusFilter === t.id;
+                var cls = "px-3 py-1.5 rounded text-xs font-bold uppercase tracking-wider whitespace-nowrap transition flex items-center gap-2 " + (isActive ? "bg-[#1FE620] text-black" : "text-white/60 hover:text-white");
+                return (
+                  <button key={t.id} type="button" onClick={function () { setStatusFilter(t.id); }} className={cls}>
+                    {t.label}
+                    <span className={"text-[10px] px-1.5 py-0.5 rounded " + (isActive ? "bg-black/20 text-black" : "bg-white/10 text-white/70")}>{t.count}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
-          {loading ? <div className="text-white/50">Cargando...</div> : (
+
+          {loading ? (
+            <div className="bg-[#0a0a0a] border border-white/5 rounded-xl p-10 text-center text-white/40 text-sm uppercase tracking-[0.3em]">Cargando...</div>
+          ) : (
             <div className="bg-[#0a0a0a] border border-white/5 rounded-xl overflow-hidden">
-              <div className="grid grid-cols-[1fr_120px_100px_100px_120px] text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold px-4 py-3 border-b border-white/5">
-                <div>Producto</div><div>Precio</div><div>Stock</div><div>Estado</div><div className="text-right">Acciones</div>
+              <div className="grid grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_140px_90px_120px_120px] text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold px-4 py-3 border-b border-white/5 bg-white/[0.02]">
+                <div>Producto</div>
+                <div>Categoría</div>
+                <div>Precio</div>
+                <div>Stock</div>
+                <div>Activo</div>
+                <div className="text-right">Acciones</div>
               </div>
               {filtered.map(function (r) {
+                var cat = catById[r.category_id];
+                var hasDiscount = r.compare_at_price && r.compare_at_price > r.price;
                 return (
-                  <div key={r.id} className="grid grid-cols-[1fr_120px_100px_100px_120px] items-center px-4 py-3 border-b border-white/5 last:border-b-0 hover:bg-white/[0.02]">
+                  <div key={r.id} className="grid grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_140px_90px_120px_120px] items-center gap-2 px-4 py-3 border-b border-white/5 last:border-b-0 hover:bg-white/[0.025] transition">
+                    {/* Producto: imagen + nombre + SKU */}
                     <div className="flex items-center gap-3 min-w-0">
-                      {r.image_url ? <img src={r.image_url} alt="" className="w-10 h-10 rounded object-cover" /> : null}
+                      <div className="w-11 h-11 shrink-0 rounded-md overflow-hidden bg-[#111] border border-white/5">
+                        {r.image_url ? (
+                          <img src={r.image_url} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-white/30 text-xs">∅</div>
+                        )}
+                      </div>
                       <div className="min-w-0">
                         <div className="text-white text-sm font-bold truncate">{r.name}</div>
-                        <div className="text-white/40 text-xs">{r.sku || r.slug}</div>
+                        <div className="text-white/40 text-[11px] truncate font-mono">{r.sku || r.slug}</div>
                       </div>
                     </div>
-                    <div className="text-white text-sm">Gs. {(r.price || 0).toLocaleString("es-PY")}</div>
-                    <div className="text-white text-sm">{r.stock || 0}</div>
-                    <div><StatusPill active={r.is_active} /></div>
+                    {/* Categoría */}
+                    <div className="min-w-0">
+                      {cat ? (
+                        <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[11px] bg-white/5 text-white/70 border border-white/5 truncate max-w-full">
+                          <span>{cat.icon || "•"}</span>
+                          <span className="truncate">{cat.name}</span>
+                        </span>
+                      ) : (
+                        <span className="text-white/30 text-xs italic">sin categoría</span>
+                      )}
+                      {r.badge ? (
+                        <span className="ml-1 inline-block px-1.5 py-0.5 rounded text-[9px] uppercase font-bold tracking-wider bg-[#1FE620]/15 text-[#1FE620] border border-[#1FE620]/30">{r.badge}</span>
+                      ) : null}
+                    </div>
+                    {/* Precio (con tachado si hay compare_at) */}
+                    <div className="min-w-0">
+                      <div className="text-white text-sm font-bold tabular-nums">Gs. {(r.price || 0).toLocaleString("es-PY")}</div>
+                      {hasDiscount ? (
+                        <div className="text-white/40 text-[11px] line-through tabular-nums">Gs. {r.compare_at_price.toLocaleString("es-PY")}</div>
+                      ) : null}
+                    </div>
+                    {/* Stock chip */}
+                    <div><StockChip stock={r.stock} /></div>
+                    {/* Toggle activo */}
+                    <div className="flex items-center gap-2">
+                      <Toggle checked={r.is_active} onChange={function () { toggleActive(r); }} label="Activar/Desactivar" />
+                      <span className={"text-[10px] uppercase tracking-wider font-bold " + (r.is_active ? "text-[#1FE620]" : "text-white/40")}>{r.is_active ? "Activo" : "Off"}</span>
+                    </div>
+                    {/* Acciones */}
                     <div className="flex justify-end gap-1">
-                      <Btn variant="outline" onClick={function () { setEditing(r); }}>Editar</Btn>
-                      <Btn variant="ghost" onClick={function () { toggleActive(r); }}>{r.is_active ? "Off" : "On"}</Btn>
+                      <IconBtn title="Editar" onClick={function () { setEditing(r); }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
+                      </IconBtn>
                     </div>
                   </div>
                 );
               })}
-              {filtered.length === 0 ? <div className="px-4 py-8 text-center text-white/40">Sin resultados.</div> : null}
+              {filtered.length === 0 ? (
+                <div className="px-4 py-12 text-center">
+                  <div className="text-white/30 text-3xl mb-2">⌕</div>
+                  <div className="text-white/60 text-sm">Sin resultados con los filtros actuales.</div>
+                </div>
+              ) : null}
             </div>
           )}
         </Content>
