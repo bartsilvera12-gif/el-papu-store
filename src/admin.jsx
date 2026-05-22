@@ -8,6 +8,7 @@ var AdminApp = (function () {
   var useState = React.useState;
   var useEffect = React.useEffect;
   var useCallback = React.useCallback;
+  var useRef = React.useRef;
   var createContext = React.createContext;
   var useContext = React.useContext;
 
@@ -233,6 +234,77 @@ var AdminApp = (function () {
       <button type="button" onClick={props.onClick} title={props.title} aria-label={props.title} className={cls}>
         {props.children}
       </button>
+    );
+  }
+
+  // Select custom — reemplazo del <select> nativo. Acepta:
+  //   value, onChange(value), options [{value,label,icon,hint}], placeholder
+  function Select(props) {
+    var options = props.options || [];
+    var openState = useState(false);
+    var open = openState[0];
+    var setOpen = openState[1];
+    var ref = useRef(null);
+
+    useEffect(function () {
+      if (!open) return;
+      function onDoc(e) {
+        if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+      }
+      document.addEventListener("mousedown", onDoc);
+      return function () { document.removeEventListener("mousedown", onDoc); };
+    }, [open]);
+
+    var current = null;
+    for (var i = 0; i < options.length; i++) {
+      if (options[i].value === props.value) { current = options[i]; break; }
+    }
+
+    var triggerCls = "w-full flex items-center gap-2.5 bg-[#111] border rounded-md pl-3 pr-2 py-2.5 text-sm text-white text-left transition outline-none "
+      + (open ? "border-[#1FE620] shadow-[0_0_18px_rgba(31,230,32,0.18)]" : "border-white/10 hover:border-[#1FE620]/40");
+
+    return (
+      <div ref={ref} className="relative">
+        <button type="button" onClick={function () { setOpen(!open); }} className={triggerCls}>
+          {current && current.icon ? <span className="text-base leading-none">{current.icon}</span> : null}
+          <span className={"flex-1 truncate " + (current ? "" : "text-white/40")}>
+            {current ? current.label : (props.placeholder || "Seleccionar...")}
+          </span>
+          <span className={"w-6 h-6 flex items-center justify-center rounded bg-[#1FE620]/10 text-[#1FE620] transition-transform " + (open ? "rotate-180" : "")}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+          </span>
+        </button>
+        {open ? (
+          <div className="absolute top-full left-0 right-0 mt-2 bg-[#0a0a0a] border border-[#1FE620]/30 rounded-lg shadow-[0_10px_40px_rgba(0,0,0,0.6),0_0_24px_rgba(31,230,32,0.12)] overflow-hidden z-50 animate-fadeup max-h-64 overflow-y-auto">
+            <div className="p-1.5">
+              {options.map(function (o) {
+                var isActive = o.value === props.value;
+                var cls = "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left text-sm transition border "
+                  + (isActive
+                    ? "bg-[#1FE620]/10 border-[#1FE620]/40 text-white"
+                    : "border-transparent text-white/75 hover:text-white hover:bg-white/5 hover:border-white/10");
+                return (
+                  <button key={String(o.value)} type="button"
+                    onClick={function () { props.onChange(o.value); setOpen(false); }}
+                    className={cls}>
+                    {o.icon ? <span className="text-base leading-none">{o.icon}</span> : null}
+                    <span className="flex-1 min-w-0">
+                      <span className="block truncate">{o.label}</span>
+                      {o.hint ? <span className="block text-[10px] text-white/40 truncate">{o.hint}</span> : null}
+                    </span>
+                    {isActive ? (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1FE620" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                    ) : null}
+                  </button>
+                );
+              })}
+              {options.length === 0 ? (
+                <div className="px-3 py-2 text-white/40 text-xs italic">Sin opciones</div>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+      </div>
     );
   }
 
@@ -686,25 +758,32 @@ var AdminApp = (function () {
           <Field label="Slug" hint="único, sin espacios"><TextInput value={f.slug} onChange={function (v) { set("slug", v); }} /></Field>
           <Field label="SKU"><TextInput value={f.sku} onChange={function (v) { set("sku", v); }} /></Field>
           <Field label="Categoría">
-            <select value={f.category_id || ""} onChange={function (e) { set("category_id", e.target.value); }}
-              className="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2.5 text-white text-sm">
-              <option value="">— Sin categoría —</option>
-              {cats.map(function (c) { return <option key={c.id} value={c.id}>{c.name}</option>; })}
-            </select>
+            <Select
+              value={f.category_id || ""}
+              onChange={function (v) { set("category_id", v); }}
+              placeholder="— Sin categoría —"
+              options={[{ value: "", label: "— Sin categoría —" }].concat(
+                cats.map(function (c) { return { value: c.id, label: c.name, icon: c.icon }; })
+              )}
+            />
           </Field>
           <Field label="Precio (Gs.)"><TextInput type="number" value={f.price} onChange={function (v) { set("price", v); }} /></Field>
           <Field label="Precio anterior (opcional)"><TextInput type="number" value={f.compare_at_price} onChange={function (v) { set("compare_at_price", v); }} /></Field>
           <Field label="Stock actual"><TextInput type="number" value={f.stock} onChange={function (v) { set("stock", v); }} /></Field>
           <Field label="Stock mínimo" hint="alerta cuando el stock baja de este nivel (0 = sin alerta)"><TextInput type="number" value={f.min_stock} onChange={function (v) { set("min_stock", v); }} /></Field>
           <Field label="Badge">
-            <select value={f.badge || ""} onChange={function (e) { set("badge", e.target.value); }}
-              className="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2.5 text-white text-sm">
-              <option value="">— ninguno —</option>
-              <option value="viral">viral</option>
-              <option value="oferta">oferta</option>
-              <option value="nuevo">nuevo</option>
-              <option value="top">top</option>
-            </select>
+            <Select
+              value={f.badge || ""}
+              onChange={function (v) { set("badge", v); }}
+              placeholder="— ninguno —"
+              options={[
+                { value: "", label: "— ninguno —" },
+                { value: "viral", label: "Viral", icon: "🔥", hint: "destaca como producto viral" },
+                { value: "oferta", label: "Oferta", icon: "🏷️", hint: "marca como producto en oferta" },
+                { value: "nuevo", label: "Nuevo", icon: "✨", hint: "marca como recién ingresado" },
+                { value: "top", label: "Top", icon: "🏆", hint: "más vendidos" },
+              ]}
+            />
           </Field>
           <div className="sm:col-span-2">
             <Field label="URL de imagen principal"><TextInput value={f.image_url} onChange={function (v) { set("image_url", v); }} placeholder="https://..." /></Field>
