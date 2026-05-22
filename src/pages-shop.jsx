@@ -207,12 +207,7 @@ function DetallePage() {
             <h1 className="font-display text-4xl sm:text-5xl text-white leading-[0.95] tracking-wide mb-3">{product.nombre}</h1>
 
             <div className="flex items-center gap-2 mb-5">
-              <div className="flex items-center gap-0.5 text-[#1FE620]">
-                {[...Array(5)].map((_, i) => <Icon key={i} name="star" className={`w-4 h-4 ${i < Math.floor(product.rating) ? "" : "opacity-25"}`} />)}
-              </div>
-              <span className="text-white/70 text-sm">{product.rating}</span>
-              <span className="text-white/40 text-sm">({product.reviews} reseñas)</span>
-              <span className="ml-2 text-xs text-[#1FE620] flex items-center gap-1">
+              <span className="text-xs text-[#1FE620] flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-[#1FE620] animate-pulse"></span>
                 {product.stock} en stock
               </span>

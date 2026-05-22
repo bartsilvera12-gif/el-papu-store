@@ -403,12 +403,6 @@ function ProductCard({ product, rank }) {
             {product.nombre}
           </h3>
         </button>
-        <div className="flex items-center gap-1.5 text-xs">
-          <div className="flex items-center gap-0.5 text-[#1FE620]">
-            {[...Array(5)].map((_, i) => <Icon key={i} name="star" className={`w-3 h-3 ${i < Math.floor(product.rating) ? "" : "opacity-25"}`} />)}
-          </div>
-          <span className="text-white/40">({product.reviews})</span>
-        </div>
         <div className="mt-auto pt-2">
           {!picking ? (
             <div className="flex items-end justify-between gap-2">
