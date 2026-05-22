@@ -758,31 +758,95 @@ var AdminApp = (function () {
       });
     }
 
+    var queryState = useState("");
+    var query = queryState[0];
+    var setQuery = queryState[1];
+    var statusFilterState = useState("all");
+    var statusFilter = statusFilterState[0];
+    var setStatusFilter = statusFilterState[1];
+
+    var filtered = rows.filter(function (r) {
+      if (statusFilter === "active" && !r.is_active) return false;
+      if (statusFilter === "inactive" && r.is_active) return false;
+      if (!query) return true;
+      var q = query.toLowerCase();
+      return r.name.toLowerCase().indexOf(q) !== -1 || (r.slug || "").toLowerCase().indexOf(q) !== -1;
+    });
+    var activeCount = rows.filter(function (r) { return r.is_active; }).length;
+    var filterTabs = [
+      { id: "all", label: "Todas", count: rows.length },
+      { id: "active", label: "Activas", count: activeCount },
+      { id: "inactive", label: "Inactivas", count: rows.length - activeCount },
+    ];
+
     return (
       <React.Fragment>
-        <PageHeader title="Categorías" subtitle={rows.length + " en total"}
+        <PageHeader title="Categorías" subtitle={rows.length + " en total · " + activeCount + " activas"}
           actions={<Btn onClick={function () { setEditing("new"); }}>+ Nueva categoría</Btn>} />
         <Content>
-          {loading ? <div className="text-white/50">Cargando...</div> : (
-            <div className="bg-[#0a0a0a] border border-white/5 rounded-xl overflow-hidden">
-              <div className="grid grid-cols-[60px_1fr_1fr_100px_100px_120px] text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold px-4 py-3 border-b border-white/5">
-                <div>Icon</div><div>Nombre</div><div>Slug</div><div>Orden</div><div>Estado</div><div className="text-right">Acciones</div>
-              </div>
-              {rows.map(function (r) {
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 mb-5">
+            <div className="relative flex-1 max-w-md">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+              </span>
+              <input value={query} onChange={function (e) { setQuery(e.target.value); }} placeholder="Buscar por nombre o slug..."
+                className="w-full bg-[#0d0d0d] border border-white/10 focus:border-[#1FE620]/60 outline-none rounded-md pl-9 pr-3 py-2.5 text-white text-sm placeholder:text-white/30 transition" />
+            </div>
+            <div className="flex items-center gap-1 bg-[#0d0d0d] border border-white/5 rounded-md p-1 overflow-x-auto">
+              {filterTabs.map(function (t) {
+                var isActive = statusFilter === t.id;
+                var cls = "px-3 py-1.5 rounded text-xs font-bold uppercase tracking-wider whitespace-nowrap transition flex items-center gap-2 " + (isActive ? "bg-[#1FE620] text-black" : "text-white/60 hover:text-white");
                 return (
-                  <div key={r.id} className="grid grid-cols-[60px_1fr_1fr_100px_100px_120px] items-center px-4 py-3 border-b border-white/5 last:border-b-0">
-                    <div className="text-2xl">{r.icon}</div>
-                    <div className="text-white font-bold text-sm">{r.name}</div>
-                    <div className="text-white/50 text-xs">{r.slug}</div>
-                    <div className="text-white/70 text-sm">{r.display_order}</div>
-                    <div><StatusPill active={r.is_active} /></div>
+                  <button key={t.id} type="button" onClick={function () { setStatusFilter(t.id); }} className={cls}>
+                    {t.label}
+                    <span className={"text-[10px] px-1.5 py-0.5 rounded " + (isActive ? "bg-black/20 text-black" : "bg-white/10 text-white/70")}>{t.count}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="bg-[#0a0a0a] border border-white/5 rounded-xl p-10 text-center text-white/40 text-sm uppercase tracking-[0.3em]">Cargando...</div>
+          ) : (
+            <div className="bg-[#0a0a0a] border border-white/5 rounded-xl overflow-hidden">
+              <div className="grid grid-cols-[minmax(0,1.4fr)_minmax(0,2fr)_90px_140px_80px] text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold px-4 py-3 border-b border-white/5 bg-white/[0.02]">
+                <div>Categoría</div>
+                <div>Descripción</div>
+                <div>Orden</div>
+                <div>Activo</div>
+                <div className="text-right">Acciones</div>
+              </div>
+              {filtered.map(function (r) {
+                return (
+                  <div key={r.id} className="grid grid-cols-[minmax(0,1.4fr)_minmax(0,2fr)_90px_140px_80px] items-center gap-2 px-4 py-3 border-b border-white/5 last:border-b-0 hover:bg-white/[0.025] transition">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-11 h-11 shrink-0 rounded-md bg-[#111] border border-white/5 flex items-center justify-center text-2xl">{r.icon || "•"}</div>
+                      <div className="min-w-0">
+                        <div className="text-white text-sm font-bold truncate">{r.name}</div>
+                        <div className="text-white/40 text-[11px] font-mono truncate">{r.slug}</div>
+                      </div>
+                    </div>
+                    <div className="text-white/60 text-xs truncate">{r.description || <span className="italic text-white/30">sin descripción</span>}</div>
+                    <div className="text-white/70 text-sm tabular-nums">#{r.display_order}</div>
+                    <div className="flex items-center gap-2">
+                      <Toggle checked={r.is_active} onChange={function () { toggle(r); }} />
+                      <span className={"text-[10px] uppercase tracking-wider font-bold " + (r.is_active ? "text-[#1FE620]" : "text-white/40")}>{r.is_active ? "Activa" : "Off"}</span>
+                    </div>
                     <div className="flex justify-end gap-1">
-                      <Btn variant="outline" onClick={function () { setEditing(r); }}>Editar</Btn>
-                      <Btn variant="ghost" onClick={function () { toggle(r); }}>{r.is_active ? "Off" : "On"}</Btn>
+                      <IconBtn title="Editar" onClick={function () { setEditing(r); }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
+                      </IconBtn>
                     </div>
                   </div>
                 );
               })}
+              {filtered.length === 0 ? (
+                <div className="px-4 py-12 text-center">
+                  <div className="text-white/30 text-3xl mb-2">⌕</div>
+                  <div className="text-white/60 text-sm">Sin categorías con los filtros actuales.</div>
+                </div>
+              ) : null}
             </div>
           )}
         </Content>
@@ -867,28 +931,116 @@ var AdminApp = (function () {
       cancelled: "text-red-400 bg-red-500/10 border-red-500/30",
     };
 
+    var queryState = useState("");
+    var query = queryState[0];
+    var setQuery = queryState[1];
+    var statusFilterState = useState("all");
+    var statusFilter = statusFilterState[0];
+    var setStatusFilter = statusFilterState[1];
+
+    var filtered = rows.filter(function (r) {
+      if (statusFilter !== "all" && r.status !== statusFilter) return false;
+      if (!query) return true;
+      var q = query.toLowerCase();
+      var name = (r.customer_name + " " + (r.customer_lastname || "")).toLowerCase();
+      return (r.order_code || "").toLowerCase().indexOf(q) !== -1
+        || name.indexOf(q) !== -1
+        || (r.customer_email || "").toLowerCase().indexOf(q) !== -1
+        || (r.customer_phone || "").toLowerCase().indexOf(q) !== -1;
+    });
+    var counts = { all: rows.length };
+    ["pending", "confirmed", "shipped", "delivered", "cancelled"].forEach(function (s) {
+      counts[s] = rows.filter(function (r) { return r.status === s; }).length;
+    });
+    var revenue = rows.filter(function (r) { return r.status !== "cancelled"; })
+      .reduce(function (acc, r) { return acc + (r.total || 0); }, 0);
+    var filterTabs = [
+      { id: "all", label: "Todos", count: counts.all },
+      { id: "pending", label: "Pendientes", count: counts.pending },
+      { id: "confirmed", label: "Confirmados", count: counts.confirmed },
+      { id: "shipped", label: "Enviados", count: counts.shipped },
+      { id: "delivered", label: "Entregados", count: counts.delivered },
+      { id: "cancelled", label: "Cancelados", count: counts.cancelled },
+    ];
+
+    function formatDate(s) {
+      if (!s) return "—";
+      try {
+        var d = new Date(s);
+        return d.toLocaleDateString("es-PY", { day: "2-digit", month: "short" }) + " · " + d.toLocaleTimeString("es-PY", { hour: "2-digit", minute: "2-digit" });
+      } catch (e) { return s; }
+    }
+
     return (
       <React.Fragment>
-        <PageHeader title="Pedidos" subtitle={rows.length + " pedidos"} />
+        <PageHeader title="Pedidos" subtitle={rows.length + " pedidos · Gs. " + revenue.toLocaleString("es-PY") + " en revenue"} />
         <Content>
-          {loading ? <div className="text-white/50">Cargando...</div> : (
-            <div className="bg-[#0a0a0a] border border-white/5 rounded-xl overflow-hidden">
-              <div className="grid grid-cols-[1fr_1fr_120px_140px_120px] text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold px-4 py-3 border-b border-white/5">
-                <div>Código</div><div>Cliente</div><div>Total</div><div>Estado</div><div className="text-right">Detalle</div>
-              </div>
-              {rows.map(function (r) {
-                var statusCls = "inline-flex items-center px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border " + (statusColors[r.status] || "text-white/60 bg-white/5 border-white/10");
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 mb-5">
+            <div className="relative flex-1 max-w-md">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+              </span>
+              <input value={query} onChange={function (e) { setQuery(e.target.value); }} placeholder="Buscar por código, cliente, email o teléfono..."
+                className="w-full bg-[#0d0d0d] border border-white/10 focus:border-[#1FE620]/60 outline-none rounded-md pl-9 pr-3 py-2.5 text-white text-sm placeholder:text-white/30 transition" />
+            </div>
+            <div className="flex items-center gap-1 bg-[#0d0d0d] border border-white/5 rounded-md p-1 overflow-x-auto">
+              {filterTabs.map(function (t) {
+                var isActive = statusFilter === t.id;
+                var cls = "px-3 py-1.5 rounded text-xs font-bold uppercase tracking-wider whitespace-nowrap transition flex items-center gap-2 " + (isActive ? "bg-[#1FE620] text-black" : "text-white/60 hover:text-white");
                 return (
-                  <div key={r.id} className="grid grid-cols-[1fr_1fr_120px_140px_120px] items-center px-4 py-3 border-b border-white/5 last:border-b-0">
-                    <div className="text-white font-bold text-sm">{r.order_code}</div>
-                    <div className="text-white/80 text-sm">{r.customer_name} {r.customer_lastname || ""}</div>
-                    <div className="text-white text-sm">Gs. {(r.total || 0).toLocaleString("es-PY")}</div>
-                    <div><span className={statusCls}>{r.status}</span></div>
-                    <div className="flex justify-end"><Btn variant="outline" onClick={function () { setSelected(r); }}>Ver</Btn></div>
+                  <button key={t.id} type="button" onClick={function () { setStatusFilter(t.id); }} className={cls}>
+                    {t.label}
+                    <span className={"text-[10px] px-1.5 py-0.5 rounded " + (isActive ? "bg-black/20 text-black" : "bg-white/10 text-white/70")}>{t.count}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="bg-[#0a0a0a] border border-white/5 rounded-xl p-10 text-center text-white/40 text-sm uppercase tracking-[0.3em]">Cargando...</div>
+          ) : (
+            <div className="bg-[#0a0a0a] border border-white/5 rounded-xl overflow-hidden">
+              <div className="grid grid-cols-[minmax(0,1.1fr)_minmax(0,1.4fr)_140px_130px_120px_70px] text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold px-4 py-3 border-b border-white/5 bg-white/[0.02]">
+                <div>Código / Fecha</div>
+                <div>Cliente</div>
+                <div>Total</div>
+                <div>Estado</div>
+                <div>Entrega</div>
+                <div className="text-right">Ver</div>
+              </div>
+              {filtered.map(function (r) {
+                var statusCls = "inline-flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border " + (statusColors[r.status] || "text-white/60 bg-white/5 border-white/10");
+                return (
+                  <div key={r.id} className="grid grid-cols-[minmax(0,1.1fr)_minmax(0,1.4fr)_140px_130px_120px_70px] items-center gap-2 px-4 py-3 border-b border-white/5 last:border-b-0 hover:bg-white/[0.025] transition cursor-pointer"
+                    onClick={function () { setSelected(r); }}>
+                    <div className="min-w-0">
+                      <div className="text-white font-bold text-sm font-mono truncate">{r.order_code}</div>
+                      <div className="text-white/40 text-[11px]">{formatDate(r.created_at)}</div>
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-white text-sm truncate">{r.customer_name} {r.customer_lastname || ""}</div>
+                      <div className="text-white/40 text-[11px] truncate">{r.customer_phone || r.customer_email || "—"}</div>
+                    </div>
+                    <div className="text-white text-sm font-bold tabular-nums">Gs. {(r.total || 0).toLocaleString("es-PY")}</div>
+                    <div><span className={statusCls}>
+                      <span className="w-1.5 h-1.5 rounded-full bg-current"></span>{r.status}
+                    </span></div>
+                    <div className="text-white/60 text-xs truncate">{r.delivery_method || "—"}</div>
+                    <div className="flex justify-end">
+                      <IconBtn title="Ver detalle" onClick={function (e) { if (e) e.stopPropagation(); setSelected(r); }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>
+                      </IconBtn>
+                    </div>
                   </div>
                 );
               })}
-              {rows.length === 0 ? <div className="px-4 py-8 text-center text-white/40">Sin pedidos.</div> : null}
+              {filtered.length === 0 ? (
+                <div className="px-4 py-12 text-center">
+                  <div className="text-white/30 text-3xl mb-2">🛒</div>
+                  <div className="text-white/60 text-sm">Sin pedidos con los filtros actuales.</div>
+                </div>
+              ) : null}
             </div>
           )}
         </Content>
@@ -1004,27 +1156,118 @@ var AdminApp = (function () {
       });
     }
 
+    var queryState = useState("");
+    var query = queryState[0];
+    var setQuery = queryState[1];
+    var statusFilterState = useState("all");
+    var statusFilter = statusFilterState[0];
+    var setStatusFilter = statusFilterState[1];
+    var expandedState = useState({});
+    var expanded = expandedState[0];
+    var setExpanded = expandedState[1];
+
+    function move(row, dir) {
+      var others = rows.filter(function (r) { return r.id !== row.id; });
+      var ordered = rows.slice().sort(function (a, b) { return (a.display_order || 0) - (b.display_order || 0); });
+      var idx = ordered.findIndex(function (r) { return r.id === row.id; });
+      var swapWith = ordered[idx + dir];
+      if (!swapWith) return;
+      Promise.all([
+        client.from("faqs").update({ display_order: swapWith.display_order }).eq("id", row.id),
+        client.from("faqs").update({ display_order: row.display_order }).eq("id", swapWith.id),
+      ]).then(load);
+    }
+
+    var filtered = rows.filter(function (r) {
+      if (statusFilter === "active" && !r.is_active) return false;
+      if (statusFilter === "inactive" && r.is_active) return false;
+      if (!query) return true;
+      var q = query.toLowerCase();
+      return r.question.toLowerCase().indexOf(q) !== -1 || (r.answer || "").toLowerCase().indexOf(q) !== -1;
+    });
+    var activeCount = rows.filter(function (r) { return r.is_active; }).length;
+    var filterTabs = [
+      { id: "all", label: "Todas", count: rows.length },
+      { id: "active", label: "Activas", count: activeCount },
+      { id: "inactive", label: "Inactivas", count: rows.length - activeCount },
+    ];
+
     return (
       <React.Fragment>
-        <PageHeader title="FAQs" subtitle={rows.length + " preguntas"}
+        <PageHeader title="FAQs" subtitle={rows.length + " preguntas · " + activeCount + " activas"}
           actions={<Btn onClick={function () { setEditing("new"); }}>+ Nueva FAQ</Btn>} />
         <Content>
-          {loading ? <div className="text-white/50">Cargando...</div> : (
-            <div className="space-y-2">
-              {rows.map(function (r) {
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 mb-5">
+            <div className="relative flex-1 max-w-md">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+              </span>
+              <input value={query} onChange={function (e) { setQuery(e.target.value); }} placeholder="Buscar por pregunta o respuesta..."
+                className="w-full bg-[#0d0d0d] border border-white/10 focus:border-[#1FE620]/60 outline-none rounded-md pl-9 pr-3 py-2.5 text-white text-sm placeholder:text-white/30 transition" />
+            </div>
+            <div className="flex items-center gap-1 bg-[#0d0d0d] border border-white/5 rounded-md p-1 overflow-x-auto">
+              {filterTabs.map(function (t) {
+                var isActive = statusFilter === t.id;
+                var cls = "px-3 py-1.5 rounded text-xs font-bold uppercase tracking-wider whitespace-nowrap transition flex items-center gap-2 " + (isActive ? "bg-[#1FE620] text-black" : "text-white/60 hover:text-white");
                 return (
-                  <div key={r.id} className="bg-[#0a0a0a] border border-white/5 rounded-xl p-4 flex items-start gap-3">
-                    <div className="text-white/40 text-xs w-8">#{r.display_order}</div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-white font-bold text-sm">{r.question}</div>
-                      <div className="text-white/60 text-xs mt-1 line-clamp-2">{r.answer}</div>
+                  <button key={t.id} type="button" onClick={function () { setStatusFilter(t.id); }} className={cls}>
+                    {t.label}
+                    <span className={"text-[10px] px-1.5 py-0.5 rounded " + (isActive ? "bg-black/20 text-black" : "bg-white/10 text-white/70")}>{t.count}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="bg-[#0a0a0a] border border-white/5 rounded-xl p-10 text-center text-white/40 text-sm uppercase tracking-[0.3em]">Cargando...</div>
+          ) : (
+            <div className="space-y-2">
+              {filtered.map(function (r, idx) {
+                var isOpen = !!expanded[r.id];
+                return (
+                  <div key={r.id} className={"bg-[#0a0a0a] border rounded-xl transition " + (isOpen ? "border-[#1FE620]/40" : "border-white/5 hover:border-white/15")}>
+                    <div className="flex items-start gap-3 p-4">
+                      <div className="flex flex-col items-center gap-0.5 pt-0.5">
+                        <button onClick={function () { move(r, -1); }} disabled={idx === 0} className="w-6 h-5 flex items-center justify-center text-white/40 hover:text-[#1FE620] disabled:opacity-20 disabled:cursor-not-allowed">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6" /></svg>
+                        </button>
+                        <div className="text-white/40 text-[10px] font-mono tabular-nums">#{r.display_order}</div>
+                        <button onClick={function () { move(r, 1); }} disabled={idx === filtered.length - 1} className="w-6 h-5 flex items-center justify-center text-white/40 hover:text-[#1FE620] disabled:opacity-20 disabled:cursor-not-allowed">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+                        </button>
+                      </div>
+                      <button onClick={function () { var o = {}; o[r.id] = !isOpen; setExpanded(Object.assign({}, expanded, o)); }}
+                        className="flex-1 min-w-0 text-left">
+                        <div className="flex items-center gap-2">
+                          <div className="text-white font-bold text-sm flex-1 min-w-0 truncate">{r.question}</div>
+                          <svg className={"w-4 h-4 text-white/40 shrink-0 transition-transform " + (isOpen ? "rotate-180" : "")} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+                        </div>
+                        {!isOpen ? (
+                          <div className="text-white/50 text-xs mt-1 line-clamp-1">{r.answer}</div>
+                        ) : null}
+                      </button>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Toggle checked={r.is_active} onChange={function () { toggle(r); }} />
+                        <IconBtn title="Editar" onClick={function () { setEditing(r); }}>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
+                        </IconBtn>
+                      </div>
                     </div>
-                    <StatusPill active={r.is_active} />
-                    <Btn variant="outline" onClick={function () { setEditing(r); }}>Editar</Btn>
-                    <Btn variant="ghost" onClick={function () { toggle(r); }}>{r.is_active ? "Off" : "On"}</Btn>
+                    {isOpen ? (
+                      <div className="px-4 pb-4 pl-[68px] text-white/70 text-sm leading-relaxed whitespace-pre-line border-t border-white/5 pt-3">
+                        {r.answer}
+                      </div>
+                    ) : null}
                   </div>
                 );
               })}
+              {filtered.length === 0 ? (
+                <div className="bg-[#0a0a0a] border border-white/5 rounded-xl px-4 py-12 text-center">
+                  <div className="text-white/30 text-3xl mb-2">❓</div>
+                  <div className="text-white/60 text-sm">Sin FAQs con los filtros actuales.</div>
+                </div>
+              ) : null}
             </div>
           )}
         </Content>
