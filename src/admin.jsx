@@ -710,11 +710,15 @@ var AdminApp = (function () {
     var firstCat = cats[0] || {};
     var isNew = !props.product;
 
-    // Inferir descuento desde producto existente:
-    // si hay compare_at_price > price, inicializa como monto fijo.
+    // En el form, "Precio" = precio normal del producto (sin descuento).
+    // Al cargar un producto existente: si hay compare_at_price > price,
+    // hubo descuento, así que el "precio normal" del form = compare_at_price
+    // y el descuento se infiere como monto fijo.
+    var initPrice = p.price != null ? p.price : 0;
     var initDiscountType = "";
     var initDiscountValue = 0;
     if (p.compare_at_price && p.price && p.compare_at_price > p.price) {
+      initPrice = p.compare_at_price;
       initDiscountType = "amount";
       initDiscountValue = p.compare_at_price - p.price;
     }
@@ -727,7 +731,7 @@ var AdminApp = (function () {
       short_description: p.short_description || "",
       description: p.description || "",
       features: Array.isArray(p.features) ? p.features.join("\n") : "",
-      price: p.price != null ? p.price : 0,
+      price: initPrice,
       discount_type: initDiscountType,
       discount_value: initDiscountValue,
       stock: p.stock != null ? p.stock : 0,
@@ -743,26 +747,31 @@ var AdminApp = (function () {
     var setF = fState[1];
     function set(k, v) { setF(Object.assign({}, f, (function () { var o = {}; o[k] = v; return o; })())); }
 
-    // Cálculo de compare_at_price desde price + descuento.
-    function calcCompareAtPrice() {
+    // Cálculo del precio FINAL (lo que paga el cliente) desde precio normal + descuento.
+    function calcFinalPrice() {
       var price = Number(f.price) || 0;
       var dv = Number(f.discount_value) || 0;
-      if (!f.discount_type || dv <= 0 || price <= 0) return null;
+      if (!f.discount_type || dv <= 0 || price <= 0) return price;
       if (f.discount_type === "percent") {
-        if (dv >= 100) return null;
-        return Math.round(price / (1 - dv / 100));
+        if (dv >= 100) return 0;
+        return Math.round(price * (1 - dv / 100));
       }
       if (f.discount_type === "amount") {
-        return price + dv;
+        return Math.max(0, price - dv);
       }
-      return null;
+      return price;
     }
-    var calcCompare = calcCompareAtPrice();
+    var hasDiscount = !!f.discount_type && Number(f.discount_value) > 0;
+    var finalPrice = calcFinalPrice();
+    var savings = (Number(f.price) || 0) - finalPrice;
 
     function submit() {
+      var normalPrice = Number(f.price) || 0;
       var payload = Object.assign({}, f, {
-        price: Number(f.price) || 0,
-        compare_at_price: calcCompare,
+        // DB.price = precio FINAL (lo que paga el cliente)
+        price: finalPrice,
+        // DB.compare_at_price = precio NORMAL si hay descuento, sino null
+        compare_at_price: hasDiscount && normalPrice > finalPrice ? normalPrice : null,
         stock: Number(f.stock) || 0,
         min_stock: Number(f.min_stock) || 0,
         display_order: Number(f.display_order) || 0,
@@ -797,9 +806,9 @@ var AdminApp = (function () {
               )}
             />
           </Field>
-          <Field label="Precio (Gs.)" hint="lo que paga el cliente"><TextInput type="number" value={f.price} onChange={function (v) { set("price", v); }} /></Field>
+          <Field label="Precio (Gs.)" hint={hasDiscount ? "precio normal (antes del descuento)" : "lo que paga el cliente"}><TextInput type="number" value={f.price} onChange={function (v) { set("price", v); }} /></Field>
           <div className="sm:col-span-2">
-            <Field label="Descuento" hint={calcCompare ? ("Precio normal calculado: Gs. " + calcCompare.toLocaleString("es-PY") + " · El cliente ahorra Gs. " + (calcCompare - (Number(f.price) || 0)).toLocaleString("es-PY")) : "Si aplicás descuento, el precio normal aparece tachado en la tienda."}>
+            <Field label="Descuento" hint={hasDiscount ? ("Precio final: Gs. " + finalPrice.toLocaleString("es-PY") + " · El cliente ahorra Gs. " + savings.toLocaleString("es-PY")) : "Si aplicás descuento, el precio normal aparece tachado en la tienda."}>
               <div className="grid grid-cols-[1fr_140px] gap-2 items-stretch">
                 <Select
                   value={f.discount_type || ""}
