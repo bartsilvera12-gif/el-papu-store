@@ -47,9 +47,32 @@ function PublicApp() {
 function App() {
   const path = window.location.pathname || "/";
   const isAdmin = path === "/admin" || path.startsWith("/admin/");
-  if (isAdmin && window.AdminApp && window.AdminApp.App) {
-    const AdminRoot = window.AdminApp.App;
-    return <AdminRoot />;
+
+  // Babel standalone compila los scripts <script type="text/babel"> de forma
+  // asíncrona, por lo que window.AdminApp puede no existir cuando esto corre.
+  // Reintentamos cada 50ms hasta encontrarlo (o 2s timeout).
+  const [adminReady, setAdminReady] = useStateApp(Boolean(window.AdminApp && window.AdminApp.App));
+  React.useEffect(() => {
+    if (!isAdmin || adminReady) return;
+    let tries = 0;
+    const t = setInterval(() => {
+      tries += 1;
+      if (window.AdminApp && window.AdminApp.App) { setAdminReady(true); clearInterval(t); }
+      else if (tries > 40) clearInterval(t); // ~2s
+    }, 50);
+    return () => clearInterval(t);
+  }, [isAdmin, adminReady]);
+
+  if (isAdmin) {
+    if (adminReady && window.AdminApp && window.AdminApp.App) {
+      const AdminRoot = window.AdminApp.App;
+      return <AdminRoot />;
+    }
+    return (
+      <div className="min-h-screen bg-[#050505] text-white flex items-center justify-center">
+        <div className="text-white/40 text-sm uppercase tracking-[0.3em]">Cargando admin...</div>
+      </div>
+    );
   }
   return <PublicApp />;
 }
