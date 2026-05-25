@@ -288,16 +288,6 @@ function SobrePage() {
         </div>
       </section>
 
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {[["1.2k+","Clientes"],["12","Categorías"],["4.8★","Rating"],["24/7","WhatsApp"]].map(([v,l]) => (
-            <div key={l} className="bg-[#0a0a0a] border border-white/5 rounded-xl p-5 text-center">
-              <div className="font-display text-3xl sm:text-4xl text-white">{v}</div>
-              <div className="text-white/50 text-xs uppercase tracking-wider mt-1">{l}</div>
-            </div>
-          ))}
-        </div>
-      </section>
     </main>
   );
 }
