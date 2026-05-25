@@ -657,7 +657,7 @@ function Footer() {
 
         <div className="mt-12 pt-6 border-t border-white/5 flex flex-col sm:flex-row justify-between gap-3 text-xs text-white/40">
           <div>© 2026 El Papu Store. Todos los derechos reservados.</div>
-          <div>Desarrollado por Neura · v1.0</div>
+          <div>Desarrollado por Neura</div>
         </div>
       </div>
     </footer>
