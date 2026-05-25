@@ -806,9 +806,9 @@ var AdminApp = (function () {
               )}
             />
           </Field>
-          <Field label="Precio (Gs.)" hint={hasDiscount ? "precio normal (antes del descuento)" : "lo que paga el cliente"}><TextInput type="number" value={f.price} onChange={function (v) { set("price", v); }} /></Field>
+          <Field label="Precio (Gs.)" hint="precio normal del producto"><TextInput type="number" value={f.price} onChange={function (v) { set("price", v); }} /></Field>
           <div className="sm:col-span-2">
-            <Field label="Descuento" hint={hasDiscount ? ("Precio final: Gs. " + finalPrice.toLocaleString("es-PY") + " · El cliente ahorra Gs. " + savings.toLocaleString("es-PY")) : "Si aplicás descuento, el precio normal aparece tachado en la tienda."}>
+            <Field label="Descuento">
               <div className="grid grid-cols-[1fr_140px] gap-2 items-stretch">
                 <Select
                   value={f.discount_type || ""}
@@ -838,6 +838,37 @@ var AdminApp = (function () {
                 </div>
               </div>
             </Field>
+          </div>
+          <div className="sm:col-span-2">
+            <div className={"rounded-xl border p-4 transition " + (hasDiscount ? "border-[#1FE620]/30 bg-[#1FE620]/[0.04]" : "border-white/10 bg-white/[0.02]")}>
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div className="min-w-0">
+                  <div className="text-[10px] uppercase tracking-[0.25em] font-bold text-white/40 mb-1.5">El cliente paga</div>
+                  <div className="flex items-baseline gap-3 flex-wrap">
+                    <div className={"text-3xl font-black tabular-nums leading-none " + (hasDiscount ? "text-[#1FE620]" : "text-white")}>
+                      Gs. {finalPrice.toLocaleString("es-PY")}
+                    </div>
+                    {hasDiscount ? (
+                      <div className="text-white/40 text-base line-through tabular-nums">
+                        Gs. {(Number(f.price) || 0).toLocaleString("es-PY")}
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+                {hasDiscount ? (
+                  <div className="text-right">
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#1FE620]/15 border border-[#1FE620]/30 text-[#1FE620] text-xs font-bold tabular-nums">
+                      −{f.discount_type === "percent" ? (Number(f.discount_value) || 0) + "%" : "Gs. " + (Number(f.discount_value) || 0).toLocaleString("es-PY")}
+                    </div>
+                    <div className="text-white/50 text-[11px] mt-1.5 tabular-nums">
+                      Ahorra Gs. {savings.toLocaleString("es-PY")}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-white/40 text-xs italic">Sin descuento aplicado</div>
+                )}
+              </div>
+            </div>
           </div>
           <Field label="Stock actual"><TextInput type="number" value={f.stock} onChange={function (v) { set("stock", v); }} /></Field>
           <Field label="Stock mínimo" hint="alerta cuando el stock baja de este nivel (0 = sin alerta)"><TextInput type="number" value={f.min_stock} onChange={function (v) { set("min_stock", v); }} /></Field>
