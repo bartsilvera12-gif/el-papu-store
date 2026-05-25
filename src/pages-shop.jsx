@@ -207,11 +207,16 @@ function DetallePage() {
   const [qty, setQty] = useStateShop(1);
   const [activeImg, setActiveImg] = useStateShop(0);
 
-  // Simulate gallery using product image + similar
-  const gallery = [product.img,
-    PRODUCTS[(product.id) % PRODUCTS.length].img,
-    PRODUCTS[(product.id + 1) % PRODUCTS.length].img,
-    PRODUCTS[(product.id + 2) % PRODUCTS.length].img,
+  // Simulate gallery using product image + 3 vecinos en el array.
+  // Antes hacíamos product.id % length asumiendo id numérico, pero con
+  // datos de Supabase id es UUID string → NaN → crash.
+  const productIndex = PRODUCTS.findIndex(p => p.id === product.id);
+  const baseIdx = productIndex >= 0 ? productIndex : 0;
+  const gallery = [
+    product.img,
+    (PRODUCTS[(baseIdx + 1) % PRODUCTS.length] || product).img,
+    (PRODUCTS[(baseIdx + 2) % PRODUCTS.length] || product).img,
+    (PRODUCTS[(baseIdx + 3) % PRODUCTS.length] || product).img,
   ];
 
   const related = PRODUCTS.filter(p => p.categoria === product.categoria && p.id !== product.id).slice(0, 4);
