@@ -663,9 +663,6 @@ var AdminApp = (function () {
                       ) : (
                         <span className="text-white/30 text-xs italic">sin categoría</span>
                       )}
-                      {r.badge ? (
-                        <span className="ml-1 inline-block px-1.5 py-0.5 rounded text-[9px] uppercase font-bold tracking-wider bg-[#1FE620]/15 text-[#1FE620] border border-[#1FE620]/30">{r.badge}</span>
-                      ) : null}
                     </div>
                     {/* Precio (con tachado si hay compare_at) */}
                     <div className="min-w-0">
@@ -996,12 +993,12 @@ var AdminApp = (function () {
               {filtered.map(function (r) {
                 return (
                   <div key={r.id} className="grid grid-cols-[minmax(0,1.4fr)_minmax(0,2fr)_90px_140px_80px] items-center gap-2 px-4 py-3 border-b border-white/5 last:border-b-0 hover:bg-white/[0.025] transition">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-11 h-11 shrink-0 rounded-md bg-[#111] border border-white/5 flex items-center justify-center text-2xl">{r.icon || "•"}</div>
-                      <div className="min-w-0">
-                        <div className="text-white text-sm font-bold truncate">{r.name}</div>
-                        <div className="text-white/40 text-[11px] font-mono truncate">{r.slug}</div>
-                      </div>
+                    <div className="min-w-0">
+                      <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[11px] bg-white/5 text-white/70 border border-white/5 truncate max-w-full">
+                        <span>{r.icon || "•"}</span>
+                        <span className="truncate">{r.name}</span>
+                      </span>
+                      <div className="text-white/40 text-[10px] font-mono truncate mt-1">{r.slug}</div>
                     </div>
                     <div className="text-white/60 text-xs truncate">{r.description || <span className="italic text-white/30">sin descripción</span>}</div>
                     <div className="text-white/70 text-sm tabular-nums">#{r.display_order}</div>
