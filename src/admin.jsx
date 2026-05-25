@@ -442,12 +442,77 @@ var AdminApp = (function () {
 
   // ---------- Dashboard ----------
 
+  // Helpers para el dashboard
+  function fmtGs(n) {
+    return "Gs. " + (Number(n) || 0).toLocaleString("es-PY");
+  }
+  function relTime(iso) {
+    if (!iso) return "—";
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return "—";
+    var ms = Date.now() - d.getTime();
+    var mins = Math.floor(ms / 60000);
+    if (mins < 1) return "ahora";
+    if (mins < 60) return "hace " + mins + " min";
+    var hrs = Math.floor(mins / 60);
+    if (hrs < 24) return "hace " + hrs + " h";
+    var days = Math.floor(hrs / 24);
+    if (days < 30) return "hace " + days + " d";
+    return d.toLocaleDateString("es-PY");
+  }
+
+  var STATUS_META = {
+    pending:   { label: "Pendiente",  color: "text-yellow-400",  bg: "bg-yellow-500/10",  border: "border-yellow-500/30",  bar: "bg-yellow-400" },
+    confirmed: { label: "Confirmado", color: "text-[#1FE620]",   bg: "bg-[#1FE620]/10",   border: "border-[#1FE620]/30",   bar: "bg-[#1FE620]" },
+    shipped:   { label: "Enviado",    color: "text-blue-400",    bg: "bg-blue-500/10",    border: "border-blue-500/30",    bar: "bg-blue-400" },
+    delivered: { label: "Entregado",  color: "text-[#1FE620]",   bg: "bg-[#1FE620]/15",   border: "border-[#1FE620]/40",   bar: "bg-[#1FE620]" },
+    cancelled: { label: "Cancelado",  color: "text-red-400",     bg: "bg-red-500/10",     border: "border-red-500/30",     bar: "bg-red-400" },
+  };
+
+  function StatusPill(props) {
+    var meta = STATUS_META[props.status] || { label: props.status || "—", color: "text-white/60", bg: "bg-white/5", border: "border-white/10" };
+    return (
+      <span className={"inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border " + meta.color + " " + meta.bg + " " + meta.border}>
+        <span className={"w-1.5 h-1.5 rounded-full " + (meta.bar || "bg-white/40")}></span>
+        {meta.label}
+      </span>
+    );
+  }
+
+  function KpiCard(props) {
+    var accent = props.accent;
+    var border = accent ? "border-[#1FE620]/40 shadow-[0_0_24px_rgba(31,230,32,0.08)]" : "border-white/5";
+    var num = accent ? "text-[#1FE620]" : "text-white";
+    return (
+      <div className={"bg-[#0a0a0a] border rounded-xl p-5 " + border}>
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-white/50 text-[10px] uppercase tracking-[0.3em] font-bold">{props.label}</div>
+          {props.icon ? <span className={"text-base " + (accent ? "text-[#1FE620]" : "text-white/30")}>{props.icon}</span> : null}
+        </div>
+        <div className={"font-display text-3xl sm:text-4xl " + num}>{props.value}</div>
+        {props.sub ? <div className="text-white/40 text-[11px] mt-1.5">{props.sub}</div> : null}
+      </div>
+    );
+  }
+
+  function MiniStat(props) {
+    return (
+      <div className="bg-[#0a0a0a] border border-white/5 rounded-lg p-3">
+        <div className="text-white/40 text-[9px] uppercase tracking-[0.25em] font-bold">{props.label}</div>
+        <div className="flex items-baseline gap-2 mt-1">
+          <span className="font-display text-2xl text-white tabular-nums">{props.value}</span>
+          {props.sub ? <span className="text-white/40 text-[10px]">{props.sub}</span> : null}
+        </div>
+      </div>
+    );
+  }
+
   function Dashboard() {
     var ctx = useAdmin();
     var client = ctx.client;
-    var statsState = useState({ totalProducts: 0, activeProducts: 0, pendingOrders: 0, totalOrders: 0 });
-    var stats = statsState[0];
-    var setStats = statsState[1];
+    var dataState = useState({ products: [], orders: [], categories: [], items: [] });
+    var data = dataState[0];
+    var setData = dataState[1];
     var loadingState = useState(true);
     var loading = loadingState[0];
     var setLoading = loadingState[1];
@@ -455,44 +520,252 @@ var AdminApp = (function () {
     useEffect(function () {
       var cancel = false;
       Promise.all([
-        client.from("products").select("*", { count: "exact", head: true }),
-        client.from("products").select("*", { count: "exact", head: true }).eq("is_active", true),
-        client.from("orders").select("*", { count: "exact", head: true }).eq("status", "pending"),
-        client.from("orders").select("*", { count: "exact", head: true }),
+        client.from("products").select("id, name, image_url, price, stock, min_stock, is_active, is_featured, category_id, created_at"),
+        client.from("orders").select("id, order_code, status, customer_name, customer_lastname, customer_email, customer_phone, total, created_at").order("created_at", { ascending: false }),
+        client.from("categories").select("id, name, icon, is_active"),
+        client.from("order_items").select("product_id, product_name, quantity, total").limit(1000),
       ]).then(function (results) {
         if (cancel) return;
-        setStats({
-          totalProducts: results[0].count || 0,
-          activeProducts: results[1].count || 0,
-          pendingOrders: results[2].count || 0,
-          totalOrders: results[3].count || 0,
+        setData({
+          products: (results[0] && results[0].data) || [],
+          orders: (results[1] && results[1].data) || [],
+          categories: (results[2] && results[2].data) || [],
+          items: (results[3] && results[3].data) || [],
         });
-      }).then(function () { if (!cancel) setLoading(false); }, function () { if (!cancel) setLoading(false); });
+        setLoading(false);
+      }, function () { if (!cancel) setLoading(false); });
       return function () { cancel = true; };
     }, [client]);
 
-    var cards = [
-      { l: "Total productos", v: stats.totalProducts },
-      { l: "Productos activos", v: stats.activeProducts },
-      { l: "Pedidos pendientes", v: stats.pendingOrders, accent: true },
-      { l: "Total pedidos", v: stats.totalOrders },
-    ];
+    // ----- Derivaciones -----
+    var products = data.products;
+    var orders = data.orders;
+    var categories = data.categories;
+    var items = data.items;
+
+    var now = Date.now();
+    var ms30 = 30 * 24 * 60 * 60 * 1000;
+    var ms7 = 7 * 24 * 60 * 60 * 1000;
+
+    var nonCancelled = orders.filter(function (o) { return o.status !== "cancelled"; });
+    var revenue = nonCancelled.reduce(function (acc, o) { return acc + (Number(o.total) || 0); }, 0);
+    var paidOrders = orders.filter(function (o) { return o.status === "confirmed" || o.status === "shipped" || o.status === "delivered"; });
+    var revenueConfirmed = paidOrders.reduce(function (acc, o) { return acc + (Number(o.total) || 0); }, 0);
+    var ordersThisMonth = orders.filter(function (o) { return o.created_at && (now - new Date(o.created_at).getTime()) < ms30; });
+    var revenueThisMonth = ordersThisMonth.filter(function (o) { return o.status !== "cancelled"; }).reduce(function (acc, o) { return acc + (Number(o.total) || 0); }, 0);
+    var ordersThisWeek = orders.filter(function (o) { return o.created_at && (now - new Date(o.created_at).getTime()) < ms7; });
+    var pendingOrders = orders.filter(function (o) { return o.status === "pending"; });
+    var avgTicket = nonCancelled.length > 0 ? Math.round(revenue / nonCancelled.length) : 0;
+
+    // Clientes únicos por email o teléfono
+    var customerKeys = {};
+    orders.forEach(function (o) {
+      var key = (o.customer_email || "").toLowerCase() || (o.customer_phone || "");
+      if (key) customerKeys[key] = true;
+    });
+    var uniqueCustomers = Object.keys(customerKeys).length;
+
+    var totalProducts = products.length;
+    var activeProducts = products.filter(function (p) { return p.is_active; }).length;
+    var featuredProducts = products.filter(function (p) { return p.is_featured; }).length;
+    var totalCategories = categories.length;
+
+    // Stock crítico: activos, min_stock > 0, stock <= min_stock — y sin stock (stock = 0)
+    var lowStock = products
+      .filter(function (p) { return p.is_active && ((p.min_stock > 0 && p.stock <= p.min_stock) || p.stock === 0); })
+      .sort(function (a, b) { return (a.stock || 0) - (b.stock || 0); })
+      .slice(0, 6);
+
+    // Distribución por estado
+    var statusCounts = { pending: 0, confirmed: 0, shipped: 0, delivered: 0, cancelled: 0 };
+    orders.forEach(function (o) { if (statusCounts[o.status] != null) statusCounts[o.status] += 1; });
+
+    // Pedidos recientes (5)
+    var recentOrders = orders.slice(0, 6);
+
+    // Top productos vendidos por unidades
+    var unitsByProduct = {};
+    items.forEach(function (it) {
+      var key = it.product_id || it.product_name || "—";
+      if (!unitsByProduct[key]) unitsByProduct[key] = { name: it.product_name || "—", units: 0, revenue: 0 };
+      unitsByProduct[key].units += Number(it.quantity) || 0;
+      unitsByProduct[key].revenue += Number(it.total) || 0;
+    });
+    var topProducts = Object.keys(unitsByProduct).map(function (k) { return unitsByProduct[k]; })
+      .sort(function (a, b) { return b.units - a.units; })
+      .slice(0, 5);
+
+    if (loading) {
+      return (
+        <React.Fragment>
+          <PageHeader title="Dashboard" subtitle="Resumen de la tienda" />
+          <Content>
+            <div className="bg-[#0a0a0a] border border-white/5 rounded-xl p-10 text-center text-white/40 text-sm uppercase tracking-[0.3em]">Cargando…</div>
+          </Content>
+        </React.Fragment>
+      );
+    }
 
     return (
       <React.Fragment>
         <PageHeader title="Dashboard" subtitle="Resumen de la tienda" />
         <Content>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {cards.map(function (c) {
-              var border = c.accent ? "border-[#1FE620]/40" : "border-white/5";
-              var num = c.accent ? "text-[#1FE620]" : "text-white";
-              return (
-                <div key={c.l} className={"bg-[#0a0a0a] border rounded-xl p-5 " + border}>
-                  <div className="text-white/50 text-[10px] uppercase tracking-[0.3em] font-bold">{c.l}</div>
-                  <div className={"font-display text-4xl mt-2 " + num}>{loading ? "…" : c.v}</div>
+          {/* Hero KPIs */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+            <KpiCard label="Ingresos confirmados" value={fmtGs(revenueConfirmed)} sub={paidOrders.length + " pedidos pagos"} icon="💰" />
+            <KpiCard label="Pedidos pendientes" value={pendingOrders.length} sub={pendingOrders.length > 0 ? "requieren atención" : "todo al día"} accent={pendingOrders.length > 0} icon="⏳" />
+            <KpiCard label="Ventas (30 d)" value={fmtGs(revenueThisMonth)} sub={ordersThisMonth.length + " pedidos · " + ordersThisWeek.length + " esta semana"} icon="📈" />
+            <KpiCard label="Ticket promedio" value={fmtGs(avgTicket)} sub={nonCancelled.length + " pedidos no cancelados"} icon="🧾" />
+          </div>
+
+          {/* Mini stats */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+            <MiniStat label="Productos" value={totalProducts} sub={activeProducts + " activos"} />
+            <MiniStat label="Categorías" value={totalCategories} />
+            <MiniStat label="Clientes únicos" value={uniqueCustomers} />
+            <MiniStat label="Destacados" value={featuredProducts} sub="aparecen en Virales" />
+          </div>
+
+          {/* Main grid: Pedidos recientes + Stock crítico */}
+          <div className="grid lg:grid-cols-3 gap-4 mb-4">
+            {/* Pedidos recientes */}
+            <div className="lg:col-span-2 bg-[#0a0a0a] border border-white/5 rounded-xl overflow-hidden">
+              <div className="px-5 py-4 border-b border-white/5 flex items-center justify-between">
+                <div>
+                  <div className="text-white text-sm font-bold">Pedidos recientes</div>
+                  <div className="text-white/40 text-[10px] uppercase tracking-[0.2em] mt-0.5">últimos {recentOrders.length}</div>
                 </div>
-              );
-            })}
+                <button type="button" onClick={function () { ctx.push("/admin/pedidos"); }}
+                  className="text-[#1FE620] text-[11px] font-bold uppercase tracking-wider hover:text-white transition">Ver todos →</button>
+              </div>
+              {recentOrders.length === 0 ? (
+                <div className="px-5 py-10 text-center text-white/40 text-sm">Aún no hay pedidos.</div>
+              ) : (
+                <div className="divide-y divide-white/5">
+                  {recentOrders.map(function (o) {
+                    var name = (o.customer_name || "") + (o.customer_lastname ? " " + o.customer_lastname : "");
+                    return (
+                      <div key={o.id} className="px-5 py-3 flex items-center gap-3 hover:bg-white/[0.02] transition">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-white text-sm font-bold font-mono">{o.order_code || "—"}</span>
+                            <StatusPill status={o.status} />
+                          </div>
+                          <div className="text-white/60 text-xs truncate mt-0.5">{name || "Cliente sin nombre"}</div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className="text-white text-sm font-bold tabular-nums">{fmtGs(o.total)}</div>
+                          <div className="text-white/40 text-[10px] mt-0.5">{relTime(o.created_at)}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Stock crítico */}
+            <div className="bg-[#0a0a0a] border border-white/5 rounded-xl overflow-hidden">
+              <div className="px-5 py-4 border-b border-white/5 flex items-center justify-between">
+                <div>
+                  <div className="text-white text-sm font-bold flex items-center gap-2">
+                    Stock crítico
+                    {lowStock.length > 0 ? <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-500/15 text-red-400 text-[10px] font-bold border border-red-500/30">{lowStock.length}</span> : null}
+                  </div>
+                  <div className="text-white/40 text-[10px] uppercase tracking-[0.2em] mt-0.5">activos en alerta</div>
+                </div>
+              </div>
+              {lowStock.length === 0 ? (
+                <div className="px-5 py-10 text-center">
+                  <div className="text-[#1FE620] text-2xl mb-2">✓</div>
+                  <div className="text-white/60 text-sm">Sin alertas de stock.</div>
+                </div>
+              ) : (
+                <div className="divide-y divide-white/5">
+                  {lowStock.map(function (p) {
+                    var critical = p.stock === 0;
+                    return (
+                      <div key={p.id} className="px-5 py-3 flex items-center gap-3 hover:bg-white/[0.02] transition">
+                        <div className="w-9 h-9 shrink-0 rounded-md overflow-hidden bg-[#111] border border-white/5">
+                          {p.image_url ? (
+                            <img src={p.image_url} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-white/30 text-xs">∅</div>
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="text-white text-xs font-bold truncate">{p.name}</div>
+                          <div className={"text-[10px] uppercase tracking-wider font-bold mt-0.5 " + (critical ? "text-red-400" : "text-yellow-400")}>
+                            {critical ? "Sin stock" : ("Quedan " + p.stock + (p.min_stock ? " · mín " + p.min_stock : ""))}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Distribución de estados + Top productos */}
+          <div className="grid lg:grid-cols-2 gap-4">
+            {/* Distribución */}
+            <div className="bg-[#0a0a0a] border border-white/5 rounded-xl p-5">
+              <div className="text-white text-sm font-bold">Estado de los pedidos</div>
+              <div className="text-white/40 text-[10px] uppercase tracking-[0.2em] mt-0.5 mb-4">distribución sobre {orders.length}</div>
+              {orders.length === 0 ? (
+                <div className="text-white/40 text-sm py-6 text-center">Sin datos todavía.</div>
+              ) : (
+                <div className="space-y-3">
+                  {["pending", "confirmed", "shipped", "delivered", "cancelled"].map(function (s) {
+                    var meta = STATUS_META[s];
+                    var count = statusCounts[s];
+                    var pct = orders.length > 0 ? Math.round((count / orders.length) * 100) : 0;
+                    return (
+                      <div key={s}>
+                        <div className="flex items-center justify-between text-xs mb-1.5">
+                          <span className={"font-bold uppercase tracking-wider " + meta.color}>{meta.label}</span>
+                          <span className="text-white/70 tabular-nums">{count} <span className="text-white/40">· {pct}%</span></span>
+                        </div>
+                        <div className="h-1.5 bg-white/5 rounded overflow-hidden">
+                          <div className={"h-full transition-all " + meta.bar} style={{ width: pct + "%" }}></div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Top productos vendidos */}
+            <div className="bg-[#0a0a0a] border border-white/5 rounded-xl p-5">
+              <div className="text-white text-sm font-bold">Top productos vendidos</div>
+              <div className="text-white/40 text-[10px] uppercase tracking-[0.2em] mt-0.5 mb-4">por unidades</div>
+              {topProducts.length === 0 ? (
+                <div className="text-white/40 text-sm py-6 text-center">Sin ventas registradas.</div>
+              ) : (
+                <div className="space-y-3">
+                  {topProducts.map(function (p, i) {
+                    var max = topProducts[0].units || 1;
+                    var pct = Math.round((p.units / max) * 100);
+                    return (
+                      <div key={i}>
+                        <div className="flex items-center justify-between text-xs mb-1.5 gap-3">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="text-[#1FE620] font-bold tabular-nums text-[11px]">#{i + 1}</span>
+                            <span className="text-white font-bold truncate">{p.name}</span>
+                          </div>
+                          <span className="text-white/70 tabular-nums shrink-0">{p.units} u <span className="text-white/40">· {fmtGs(p.revenue)}</span></span>
+                        </div>
+                        <div className="h-1.5 bg-white/5 rounded overflow-hidden">
+                          <div className="h-full bg-[#1FE620] transition-all" style={{ width: pct + "%" }}></div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         </Content>
       </React.Fragment>
