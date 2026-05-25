@@ -78,7 +78,7 @@ function CatalogoPage() {
   const filtered = useMemoShop(() => {
     let arr = [...PRODUCTS];
     if (cat !== "todas") arr = arr.filter(p => p.categoria.toLowerCase() === cat.toLowerCase());
-    if (filter === "viral") arr = arr.filter(p => p.badge === "viral");
+    if (filter === "viral") arr = arr.filter(p => p.is_featured || p.badge === "viral");
     if (filter === "oferta") arr = arr.filter(p => p.precioAnterior);
     if (filter === "nuevo") arr = arr.filter(p => p.badge === "nuevo");
     if (filter === "top") arr = arr.filter(p => p.badge === "top");

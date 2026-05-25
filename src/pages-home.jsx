@@ -127,6 +127,7 @@ function Hero() {
 // ----------------------- Virales -----------------------
 
 function ViralesSection() {
+  const { navigate } = useShop();
   const { PRODUCTS } = window.__PAPU_DATA__;
   // Fuente de verdad: el checkbox "Destacado" del admin (is_featured).
   // Fallback a badge === "viral" para que el mock (data.jsx) siga teniendo
@@ -149,6 +150,10 @@ function ViralesSection() {
             </h2>
             <p className="text-white/60 mt-3 max-w-xl">Lo que todos están mirando, vos lo podés tener primero.</p>
           </div>
+          <button onClick={() => navigate("catalogo", { filter: "viral" })}
+            className="inline-flex items-center gap-2 text-white text-sm font-bold uppercase tracking-wider hover:text-[#1FE620] transition-colors">
+            Ver todos <Icon name="arrow-right" className="w-4 h-4" />
+          </button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
