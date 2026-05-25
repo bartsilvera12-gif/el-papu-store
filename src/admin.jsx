@@ -571,7 +571,7 @@ var AdminApp = (function () {
     var TONES = {
       green:   { border: "border-[#1FE620]/30 hover:border-[#1FE620]/60", iconBg: "bg-[#1FE620]/15 border-[#1FE620]/40 text-[#1FE620]", glow: "drop-shadow-[0_0_22px_rgba(31,230,32,0.45)]", numColor: "text-white", blob: "bg-[#1FE620]/15" },
       warning: { border: "border-yellow-500/40 hover:border-yellow-500/70 shadow-[0_0_30px_rgba(250,204,21,0.10)]", iconBg: "bg-yellow-500/15 border-yellow-500/40 text-yellow-400", glow: "drop-shadow-[0_0_22px_rgba(250,204,21,0.55)]", numColor: "text-yellow-300", blob: "bg-yellow-500/20" },
-      blue:    { border: "border-blue-500/30 hover:border-blue-500/60", iconBg: "bg-blue-500/15 border-blue-500/40 text-blue-400", glow: "drop-shadow-[0_0_22px_rgba(59,130,246,0.45)]", numColor: "text-white", blob: "bg-blue-500/15" },
+      mono:    { border: "border-white/15 hover:border-[#1FE620]/50", iconBg: "bg-white/10 border-white/20 text-white", glow: "drop-shadow-[0_0_22px_rgba(255,255,255,0.18)]", numColor: "text-white", blob: "bg-white/[0.06]" },
       neutral: { border: "border-white/10 hover:border-[#1FE620]/40", iconBg: "bg-white/5 border-white/10 text-white/70", glow: "drop-shadow-[0_0_18px_rgba(31,230,32,0.20)]", numColor: "text-white", blob: "bg-white/[0.04]" },
     };
     var t = TONES[tone] || TONES.neutral;
@@ -739,7 +739,7 @@ var AdminApp = (function () {
             <KpiCard tone="green" label="Ingresos confirmados" value={fmtGs(revenueConfirmed)} sub={paidOrders.length + " pedidos pagos"} icon={DashIcons.money} />
             <KpiCard tone={pendingOrders.length > 0 ? "warning" : "neutral"} label="Pedidos pendientes" value={pendingOrders.length} sub={pendingOrders.length > 0 ? "requieren atención" : "todo al día"} pulse={pendingOrders.length > 0} icon={DashIcons.hourglass} />
             <KpiCard tone="green" label="Ventas (30 d)" value={fmtGs(revenueThisMonth)} sub={ordersThisMonth.length + " pedidos · " + ordersThisWeek.length + " esta semana"} icon={DashIcons.trending} />
-            <KpiCard tone="blue" label="Ticket promedio" value={fmtGs(avgTicket)} sub={nonCancelled.length + " pedidos no cancelados"} icon={DashIcons.receipt} />
+            <KpiCard tone="mono" label="Ticket promedio" value={fmtGs(avgTicket)} sub={nonCancelled.length + " pedidos no cancelados"} icon={DashIcons.receipt} />
           </div>
 
           {/* Mini stats */}
