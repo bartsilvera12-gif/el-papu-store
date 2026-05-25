@@ -128,7 +128,10 @@ function Hero() {
 
 function ViralesSection() {
   const { PRODUCTS } = window.__PAPU_DATA__;
-  const virales = PRODUCTS.filter(p => p.badge === "viral").slice(0, 4);
+  // Fuente de verdad: el checkbox "Destacado" del admin (is_featured).
+  // Fallback a badge === "viral" para que el mock (data.jsx) siga teniendo
+  // contenido cuando Supabase no está disponible.
+  const virales = PRODUCTS.filter(p => p.is_featured || p.badge === "viral");
 
   return (
     <section className="py-16 sm:py-24 relative overflow-hidden">

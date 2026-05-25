@@ -29,6 +29,7 @@ const PapuStoreAPI = (function () {
       img: row.image_url || "",
       slug: row.slug,
       is_active: row.is_active,
+      is_featured: row.is_featured === true,
     };
   }
 
