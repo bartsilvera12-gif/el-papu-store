@@ -1028,6 +1028,90 @@ var AdminApp = (function () {
     );
   }
 
+  // ---------- EmojiPicker ----------
+  // Selector de emoji con diseño dark + acento verde, coherente con el
+  // resto del admin. Tiene un grid de emojis agrupados por categoría y
+  // un input libre para pegar cualquier emoji custom.
+  function EmojiPicker(props) {
+    var openState = useState(false);
+    var open = openState[0];
+    var setOpen = openState[1];
+    var ref = useRef(null);
+
+    useEffect(function () {
+      if (!open) return;
+      function onDocClick(e) {
+        if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+      }
+      document.addEventListener("mousedown", onDocClick);
+      return function () { document.removeEventListener("mousedown", onDocClick); };
+    }, [open]);
+
+    var groups = [
+      { label: "Tecnología", emojis: ["🎧", "💻", "📱", "⌨️", "🖱️", "📷", "🖥️", "🔋", "📺", "🎤", "💿", "🔌"] },
+      { label: "Gaming", emojis: ["🎮", "🕹️", "🎯", "🏆", "🎲", "♟️", "🃏", "🎰"] },
+      { label: "Moda", emojis: ["👕", "👟", "👜", "🧢", "👔", "🕶️", "⌚", "💍", "👗", "👒"] },
+      { label: "Hogar", emojis: ["🛋️", "🪑", "💡", "🛏️", "🧹", "🪴", "🍽️", "🧺", "🪟", "🔑"] },
+      { label: "Belleza", emojis: ["💄", "💅", "🧴", "💇", "🌸", "✨", "🧖", "🪞"] },
+      { label: "Deporte", emojis: ["⚽", "🏀", "🏋️", "🚴", "🏊", "⛷️", "🥊", "🎽"] },
+      { label: "Comida", emojis: ["🍕", "🍔", "☕", "🍫", "🍿", "🥤", "🍣", "🍩"] },
+      { label: "Otros", emojis: ["⭐", "🔥", "⚡", "🎁", "🎉", "🛒", "🏷️", "📦", "💎", "🎵", "❤️", "✨"] },
+    ];
+
+    var value = props.value || "";
+
+    return (
+      <div ref={ref} className="relative">
+        <button type="button" onClick={function () { setOpen(!open); }}
+          className={"w-full bg-[#111] border rounded-md px-3 py-2.5 text-white text-sm flex items-center justify-between gap-3 outline-none transition " + (open ? "border-[#1FE620]/60 shadow-[0_0_18px_rgba(31,230,32,0.18)]" : "border-white/10 hover:border-white/20")}>
+            <span className="flex items-center gap-3 min-w-0">
+              <span className="w-8 h-8 flex items-center justify-center rounded bg-[#0a0a0a] border border-white/5 text-xl shrink-0">
+                {value || "•"}
+              </span>
+              <span className="text-white/40 text-[11px] uppercase tracking-[0.2em] font-bold truncate">
+                {value ? "Cambiar emoji" : "Elegir emoji"}
+              </span>
+            </span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={"text-white/50 transition-transform shrink-0 " + (open ? "rotate-180" : "")}>
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+        </button>
+        {open ? (
+          <div className="absolute top-full left-0 right-0 mt-2 bg-[#0a0a0a] border border-[#1FE620]/30 rounded-lg shadow-[0_10px_40px_rgba(0,0,0,0.6),0_0_30px_rgba(31,230,32,0.15)] z-50 overflow-hidden">
+            <div className="p-3 border-b border-white/5">
+              <div className="text-[9px] uppercase tracking-[0.3em] text-[#1FE620] font-bold mb-2">Emoji custom</div>
+              <input type="text" value={value} maxLength="8"
+                onChange={function (e) { props.onChange(e.target.value); }}
+                placeholder="Pegá cualquier emoji acá..."
+                className="w-full bg-[#111] border border-white/10 focus:border-[#1FE620]/60 outline-none rounded-md px-3 py-2 text-white text-sm placeholder:text-white/30" />
+            </div>
+            <div className="p-3 space-y-3 max-h-[300px] overflow-y-auto">
+              {groups.map(function (g) {
+                return (
+                  <div key={g.label}>
+                    <div className="text-[9px] uppercase tracking-[0.25em] text-[#1FE620] font-bold mb-2">{g.label}</div>
+                    <div className="grid grid-cols-8 gap-1.5">
+                      {g.emojis.map(function (emoji, i) {
+                        var isActive = value === emoji;
+                        return (
+                          <button key={g.label + "-" + i} type="button"
+                            onClick={function () { props.onChange(emoji); setOpen(false); }}
+                            className={"aspect-square flex items-center justify-center rounded-md text-xl transition border " + (isActive ? "bg-[#1FE620]/15 border-[#1FE620]/50 shadow-[0_0_12px_rgba(31,230,32,0.25)]" : "bg-white/[0.02] border-transparent hover:bg-white/5 hover:border-white/10")}>
+                            {emoji}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
+      </div>
+    );
+  }
+
   function CategoryEditor(props) {
     var c = props.cat || {};
     var isNew = !props.cat;
@@ -1054,7 +1138,7 @@ var AdminApp = (function () {
         <div className="space-y-4">
           <Field label="Nombre"><TextInput value={f.name} onChange={function (v) { set("name", v); }} /></Field>
           <Field label="Slug"><TextInput value={f.slug} onChange={function (v) { set("slug", v); }} /></Field>
-          <Field label="Icono (emoji)"><TextInput value={f.icon} onChange={function (v) { set("icon", v); }} /></Field>
+          <Field label="Icono (emoji)"><EmojiPicker value={f.icon} onChange={function (v) { set("icon", v); }} /></Field>
           <Field label="Descripción"><TextArea rows={2} value={f.description} onChange={function (v) { set("description", v); }} /></Field>
           <Field label="Orden"><TextInput type="number" value={f.display_order} onChange={function (v) { set("display_order", v); }} /></Field>
           <label className="flex items-center gap-2 text-sm text-white/80">
