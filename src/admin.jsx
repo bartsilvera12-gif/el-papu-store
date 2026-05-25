@@ -479,30 +479,154 @@ var AdminApp = (function () {
     );
   }
 
+  // Iconos SVG inline para los KPIs (no emoji, más premium)
+  var DashIcons = {
+    money: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" />
+        <path d="M12 6v2m0 8v2" />
+      </svg>
+    ),
+    hourglass: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M5 22h14M5 2h14" />
+        <path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22" />
+        <path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2" />
+      </svg>
+    ),
+    trending: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+        <polyline points="16 7 22 7 22 13" />
+      </svg>
+    ),
+    receipt: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1z" />
+        <path d="M16 8H8M16 12H8M13 16H8" />
+      </svg>
+    ),
+    bag: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <path d="M16 10a4 4 0 0 1-8 0" />
+      </svg>
+    ),
+    grid: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="7" height="7" />
+        <rect x="14" y="3" width="7" height="7" />
+        <rect x="14" y="14" width="7" height="7" />
+        <rect x="3" y="14" width="7" height="7" />
+      </svg>
+    ),
+    users: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
+    ),
+    star: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+      </svg>
+    ),
+    flame: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
+      </svg>
+    ),
+    alert: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+        <line x1="12" y1="9" x2="12" y2="13" />
+        <line x1="12" y1="17" x2="12.01" y2="17" />
+      </svg>
+    ),
+    chart: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="18" y1="20" x2="18" y2="10" />
+        <line x1="12" y1="20" x2="12" y2="4" />
+        <line x1="6" y1="20" x2="6" y2="14" />
+      </svg>
+    ),
+    trophy: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+        <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+        <path d="M4 22h16" />
+        <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+        <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+        <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+      </svg>
+    ),
+  };
+
   function KpiCard(props) {
-    var accent = props.accent;
-    var border = accent ? "border-[#1FE620]/40 shadow-[0_0_24px_rgba(31,230,32,0.08)]" : "border-white/5";
-    var num = accent ? "text-[#1FE620]" : "text-white";
+    var tone = props.tone || "neutral";
+    var TONES = {
+      green:   { border: "border-[#1FE620]/30 hover:border-[#1FE620]/60", iconBg: "bg-[#1FE620]/15 border-[#1FE620]/40 text-[#1FE620]", glow: "drop-shadow-[0_0_22px_rgba(31,230,32,0.45)]", numColor: "text-white", blob: "bg-[#1FE620]/15" },
+      warning: { border: "border-yellow-500/40 hover:border-yellow-500/70 shadow-[0_0_30px_rgba(250,204,21,0.10)]", iconBg: "bg-yellow-500/15 border-yellow-500/40 text-yellow-400", glow: "drop-shadow-[0_0_22px_rgba(250,204,21,0.55)]", numColor: "text-yellow-300", blob: "bg-yellow-500/20" },
+      blue:    { border: "border-blue-500/30 hover:border-blue-500/60", iconBg: "bg-blue-500/15 border-blue-500/40 text-blue-400", glow: "drop-shadow-[0_0_22px_rgba(59,130,246,0.45)]", numColor: "text-white", blob: "bg-blue-500/15" },
+      neutral: { border: "border-white/10 hover:border-[#1FE620]/40", iconBg: "bg-white/5 border-white/10 text-white/70", glow: "drop-shadow-[0_0_18px_rgba(31,230,32,0.20)]", numColor: "text-white", blob: "bg-white/[0.04]" },
+    };
+    var t = TONES[tone] || TONES.neutral;
     return (
-      <div className={"bg-[#0a0a0a] border rounded-xl p-5 " + border}>
-        <div className="flex items-center justify-between mb-2">
-          <div className="text-white/50 text-[10px] uppercase tracking-[0.3em] font-bold">{props.label}</div>
-          {props.icon ? <span className={"text-base " + (accent ? "text-[#1FE620]" : "text-white/30")}>{props.icon}</span> : null}
+      <div className={"group relative bg-gradient-to-br from-[#0d0d0d] via-[#0a0a0a] to-[#050505] border rounded-xl p-5 overflow-hidden transition-all " + t.border}>
+        <div className={"absolute -top-16 -right-16 w-40 h-40 rounded-full blur-3xl transition-opacity opacity-80 group-hover:opacity-100 " + t.blob}></div>
+        <div className="relative">
+          <div className="flex items-start justify-between mb-3">
+            <div className="text-white/50 text-[10px] uppercase tracking-[0.3em] font-bold">{props.label}</div>
+            <div className={"w-10 h-10 rounded-lg border flex items-center justify-center transition-transform group-hover:scale-110 " + t.iconBg}>{props.icon}</div>
+          </div>
+          <div className={"font-display text-4xl sm:text-[2.5rem] leading-none tabular-nums " + t.numColor + " " + t.glow}>{props.value}</div>
+          {props.sub ? (
+            <div className="text-white/50 text-[11px] mt-2.5 flex items-center gap-1.5">
+              {props.pulse ? <span className="relative flex w-2 h-2"><span className="animate-ping absolute inline-flex w-full h-full rounded-full bg-yellow-400 opacity-75"></span><span className="relative inline-flex rounded-full w-2 h-2 bg-yellow-400"></span></span> : null}
+              <span>{props.sub}</span>
+            </div>
+          ) : null}
         </div>
-        <div className={"font-display text-3xl sm:text-4xl " + num}>{props.value}</div>
-        {props.sub ? <div className="text-white/40 text-[11px] mt-1.5">{props.sub}</div> : null}
       </div>
     );
   }
 
   function MiniStat(props) {
     return (
-      <div className="bg-[#0a0a0a] border border-white/5 rounded-lg p-3">
-        <div className="text-white/40 text-[9px] uppercase tracking-[0.25em] font-bold">{props.label}</div>
-        <div className="flex items-baseline gap-2 mt-1">
-          <span className="font-display text-2xl text-white tabular-nums">{props.value}</span>
+      <div className="group relative bg-[#0a0a0a] border border-white/10 rounded-lg p-3.5 overflow-hidden hover:border-[#1FE620]/30 transition-all">
+        <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#1FE620]/40 group-hover:bg-[#1FE620] transition"></div>
+        <div className="flex items-center gap-2 text-white/50 text-[9px] uppercase tracking-[0.25em] font-bold">
+          {props.icon ? <span className="text-[#1FE620]">{props.icon}</span> : null}
+          <span>{props.label}</span>
+        </div>
+        <div className="flex items-baseline gap-2 mt-1.5">
+          <span className="font-display text-2xl text-white tabular-nums drop-shadow-[0_0_10px_rgba(31,230,32,0.25)]">{props.value}</span>
           {props.sub ? <span className="text-white/40 text-[10px]">{props.sub}</span> : null}
         </div>
+      </div>
+    );
+  }
+
+  // Header con icono coloreado para los paneles del dashboard
+  function PanelHeader(props) {
+    return (
+      <div className="px-5 py-4 border-b border-white/5 flex items-center justify-between gap-3 bg-gradient-to-r from-[#1FE620]/[0.04] to-transparent">
+        <div className="flex items-center gap-3 min-w-0">
+          {props.icon ? (
+            <div className={"w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border " + (props.iconClass || "bg-[#1FE620]/15 border-[#1FE620]/40 text-[#1FE620]")}>
+              {props.icon}
+            </div>
+          ) : null}
+          <div className="min-w-0">
+            <div className="text-white text-sm font-bold flex items-center gap-2">{props.title}{props.badge}</div>
+            <div className="text-white/40 text-[10px] uppercase tracking-[0.2em] mt-0.5 truncate">{props.subtitle}</div>
+          </div>
+        </div>
+        {props.actions}
       </div>
     );
   }
@@ -612,40 +736,46 @@ var AdminApp = (function () {
         <Content>
           {/* Hero KPIs */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-            <KpiCard label="Ingresos confirmados" value={fmtGs(revenueConfirmed)} sub={paidOrders.length + " pedidos pagos"} icon="💰" />
-            <KpiCard label="Pedidos pendientes" value={pendingOrders.length} sub={pendingOrders.length > 0 ? "requieren atención" : "todo al día"} accent={pendingOrders.length > 0} icon="⏳" />
-            <KpiCard label="Ventas (30 d)" value={fmtGs(revenueThisMonth)} sub={ordersThisMonth.length + " pedidos · " + ordersThisWeek.length + " esta semana"} icon="📈" />
-            <KpiCard label="Ticket promedio" value={fmtGs(avgTicket)} sub={nonCancelled.length + " pedidos no cancelados"} icon="🧾" />
+            <KpiCard tone="green" label="Ingresos confirmados" value={fmtGs(revenueConfirmed)} sub={paidOrders.length + " pedidos pagos"} icon={DashIcons.money} />
+            <KpiCard tone={pendingOrders.length > 0 ? "warning" : "neutral"} label="Pedidos pendientes" value={pendingOrders.length} sub={pendingOrders.length > 0 ? "requieren atención" : "todo al día"} pulse={pendingOrders.length > 0} icon={DashIcons.hourglass} />
+            <KpiCard tone="green" label="Ventas (30 d)" value={fmtGs(revenueThisMonth)} sub={ordersThisMonth.length + " pedidos · " + ordersThisWeek.length + " esta semana"} icon={DashIcons.trending} />
+            <KpiCard tone="blue" label="Ticket promedio" value={fmtGs(avgTicket)} sub={nonCancelled.length + " pedidos no cancelados"} icon={DashIcons.receipt} />
           </div>
 
           {/* Mini stats */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-            <MiniStat label="Productos" value={totalProducts} sub={activeProducts + " activos"} />
-            <MiniStat label="Categorías" value={totalCategories} />
-            <MiniStat label="Clientes únicos" value={uniqueCustomers} />
-            <MiniStat label="Destacados" value={featuredProducts} sub="aparecen en Virales" />
+            <MiniStat label="Productos" value={totalProducts} sub={activeProducts + " activos"} icon={DashIcons.bag} />
+            <MiniStat label="Categorías" value={totalCategories} icon={DashIcons.grid} />
+            <MiniStat label="Clientes únicos" value={uniqueCustomers} icon={DashIcons.users} />
+            <MiniStat label="Destacados" value={featuredProducts} sub="en Virales" icon={DashIcons.star} />
           </div>
 
           {/* Main grid: Pedidos recientes + Stock crítico */}
           <div className="grid lg:grid-cols-3 gap-4 mb-4">
             {/* Pedidos recientes */}
             <div className="lg:col-span-2 bg-[#0a0a0a] border border-white/5 rounded-xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-white/5 flex items-center justify-between">
-                <div>
-                  <div className="text-white text-sm font-bold">Pedidos recientes</div>
-                  <div className="text-white/40 text-[10px] uppercase tracking-[0.2em] mt-0.5">últimos {recentOrders.length}</div>
-                </div>
-                <button type="button" onClick={function () { ctx.push("/admin/pedidos"); }}
-                  className="text-[#1FE620] text-[11px] font-bold uppercase tracking-wider hover:text-white transition">Ver todos →</button>
-              </div>
+              <PanelHeader
+                title="Pedidos recientes"
+                subtitle={"últimos " + recentOrders.length}
+                icon={DashIcons.flame}
+                actions={
+                  <button type="button" onClick={function () { ctx.push("/admin/pedidos"); }}
+                    className="text-[#1FE620] text-[11px] font-bold uppercase tracking-wider hover:text-white transition shrink-0">Ver todos →</button>
+                }
+              />
               {recentOrders.length === 0 ? (
-                <div className="px-5 py-10 text-center text-white/40 text-sm">Aún no hay pedidos.</div>
+                <div className="px-5 py-12 text-center">
+                  <div className="w-12 h-12 mx-auto rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/30 mb-3">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                  </div>
+                  <div className="text-white/60 text-sm">Aún no hay pedidos.</div>
+                </div>
               ) : (
                 <div className="divide-y divide-white/5">
                   {recentOrders.map(function (o) {
                     var name = (o.customer_name || "") + (o.customer_lastname ? " " + o.customer_lastname : "");
                     return (
-                      <div key={o.id} className="px-5 py-3 flex items-center gap-3 hover:bg-white/[0.02] transition">
+                      <div key={o.id} className="px-5 py-3 flex items-center gap-3 hover:bg-[#1FE620]/[0.03] transition">
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="text-white text-sm font-bold font-mono">{o.order_code || "—"}</span>
@@ -666,18 +796,18 @@ var AdminApp = (function () {
 
             {/* Stock crítico */}
             <div className="bg-[#0a0a0a] border border-white/5 rounded-xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-white/5 flex items-center justify-between">
-                <div>
-                  <div className="text-white text-sm font-bold flex items-center gap-2">
-                    Stock crítico
-                    {lowStock.length > 0 ? <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-500/15 text-red-400 text-[10px] font-bold border border-red-500/30">{lowStock.length}</span> : null}
-                  </div>
-                  <div className="text-white/40 text-[10px] uppercase tracking-[0.2em] mt-0.5">activos en alerta</div>
-                </div>
-              </div>
+              <PanelHeader
+                title="Stock crítico"
+                subtitle="activos en alerta"
+                icon={DashIcons.alert}
+                iconClass={lowStock.length > 0 ? "bg-red-500/15 border-red-500/40 text-red-400" : "bg-[#1FE620]/15 border-[#1FE620]/40 text-[#1FE620]"}
+                badge={lowStock.length > 0 ? <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-red-500/20 text-red-400 text-[10px] font-bold border border-red-500/40">{lowStock.length}</span> : null}
+              />
               {lowStock.length === 0 ? (
-                <div className="px-5 py-10 text-center">
-                  <div className="text-[#1FE620] text-2xl mb-2">✓</div>
+                <div className="px-5 py-12 text-center">
+                  <div className="w-12 h-12 mx-auto rounded-full bg-[#1FE620]/10 border border-[#1FE620]/30 flex items-center justify-center text-[#1FE620] mb-3">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  </div>
                   <div className="text-white/60 text-sm">Sin alertas de stock.</div>
                 </div>
               ) : (
@@ -685,7 +815,7 @@ var AdminApp = (function () {
                   {lowStock.map(function (p) {
                     var critical = p.stock === 0;
                     return (
-                      <div key={p.id} className="px-5 py-3 flex items-center gap-3 hover:bg-white/[0.02] transition">
+                      <div key={p.id} className="px-5 py-3 flex items-center gap-3 hover:bg-[#1FE620]/[0.03] transition">
                         <div className="w-9 h-9 shrink-0 rounded-md overflow-hidden bg-[#111] border border-white/5">
                           {p.image_url ? (
                             <img src={p.image_url} alt="" className="w-full h-full object-cover" />
@@ -695,7 +825,8 @@ var AdminApp = (function () {
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="text-white text-xs font-bold truncate">{p.name}</div>
-                          <div className={"text-[10px] uppercase tracking-wider font-bold mt-0.5 " + (critical ? "text-red-400" : "text-yellow-400")}>
+                          <div className={"text-[10px] uppercase tracking-wider font-bold mt-0.5 inline-flex items-center gap-1 " + (critical ? "text-red-400" : "text-yellow-400")}>
+                            <span className={"w-1.5 h-1.5 rounded-full " + (critical ? "bg-red-400" : "bg-yellow-400")}></span>
                             {critical ? "Sin stock" : ("Quedan " + p.stock + (p.min_stock ? " · mín " + p.min_stock : ""))}
                           </div>
                         </div>
@@ -710,61 +841,78 @@ var AdminApp = (function () {
           {/* Distribución de estados + Top productos */}
           <div className="grid lg:grid-cols-2 gap-4">
             {/* Distribución */}
-            <div className="bg-[#0a0a0a] border border-white/5 rounded-xl p-5">
-              <div className="text-white text-sm font-bold">Estado de los pedidos</div>
-              <div className="text-white/40 text-[10px] uppercase tracking-[0.2em] mt-0.5 mb-4">distribución sobre {orders.length}</div>
-              {orders.length === 0 ? (
-                <div className="text-white/40 text-sm py-6 text-center">Sin datos todavía.</div>
-              ) : (
-                <div className="space-y-3">
-                  {["pending", "confirmed", "shipped", "delivered", "cancelled"].map(function (s) {
-                    var meta = STATUS_META[s];
-                    var count = statusCounts[s];
-                    var pct = orders.length > 0 ? Math.round((count / orders.length) * 100) : 0;
-                    return (
-                      <div key={s}>
-                        <div className="flex items-center justify-between text-xs mb-1.5">
-                          <span className={"font-bold uppercase tracking-wider " + meta.color}>{meta.label}</span>
-                          <span className="text-white/70 tabular-nums">{count} <span className="text-white/40">· {pct}%</span></span>
+            <div className="bg-[#0a0a0a] border border-white/5 rounded-xl overflow-hidden">
+              <PanelHeader
+                title="Estado de los pedidos"
+                subtitle={"distribución sobre " + orders.length}
+                icon={DashIcons.chart}
+              />
+              <div className="p-5">
+                {orders.length === 0 ? (
+                  <div className="text-white/40 text-sm py-6 text-center">Sin datos todavía.</div>
+                ) : (
+                  <div className="space-y-3.5">
+                    {["pending", "confirmed", "shipped", "delivered", "cancelled"].map(function (s) {
+                      var meta = STATUS_META[s];
+                      var count = statusCounts[s];
+                      var pct = orders.length > 0 ? Math.round((count / orders.length) * 100) : 0;
+                      return (
+                        <div key={s}>
+                          <div className="flex items-center justify-between text-xs mb-1.5">
+                            <span className={"font-bold uppercase tracking-wider flex items-center gap-1.5 " + meta.color}>
+                              <span className={"w-1.5 h-1.5 rounded-full " + meta.bar}></span>
+                              {meta.label}
+                            </span>
+                            <span className="text-white/70 tabular-nums font-mono">{count} <span className="text-white/40">· {pct}%</span></span>
+                          </div>
+                          <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                            <div className={"h-full transition-all rounded-full " + meta.bar} style={{ width: pct + "%" }}></div>
+                          </div>
                         </div>
-                        <div className="h-1.5 bg-white/5 rounded overflow-hidden">
-                          <div className={"h-full transition-all " + meta.bar} style={{ width: pct + "%" }}></div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Top productos vendidos */}
-            <div className="bg-[#0a0a0a] border border-white/5 rounded-xl p-5">
-              <div className="text-white text-sm font-bold">Top productos vendidos</div>
-              <div className="text-white/40 text-[10px] uppercase tracking-[0.2em] mt-0.5 mb-4">por unidades</div>
-              {topProducts.length === 0 ? (
-                <div className="text-white/40 text-sm py-6 text-center">Sin ventas registradas.</div>
-              ) : (
-                <div className="space-y-3">
-                  {topProducts.map(function (p, i) {
-                    var max = topProducts[0].units || 1;
-                    var pct = Math.round((p.units / max) * 100);
-                    return (
-                      <div key={i}>
-                        <div className="flex items-center justify-between text-xs mb-1.5 gap-3">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span className="text-[#1FE620] font-bold tabular-nums text-[11px]">#{i + 1}</span>
-                            <span className="text-white font-bold truncate">{p.name}</span>
+            <div className="bg-[#0a0a0a] border border-white/5 rounded-xl overflow-hidden">
+              <PanelHeader
+                title="Top productos vendidos"
+                subtitle="por unidades"
+                icon={DashIcons.trophy}
+              />
+              <div className="p-5">
+                {topProducts.length === 0 ? (
+                  <div className="text-white/40 text-sm py-6 text-center">Sin ventas registradas.</div>
+                ) : (
+                  <div className="space-y-3.5">
+                    {topProducts.map(function (p, i) {
+                      var max = topProducts[0].units || 1;
+                      var pct = Math.round((p.units / max) * 100);
+                      var rankClass = i === 0
+                        ? "bg-[#1FE620] text-black"
+                        : i === 1 ? "bg-[#1FE620]/30 text-[#1FE620] border border-[#1FE620]/40"
+                        : "bg-white/5 text-white/60 border border-white/10";
+                      return (
+                        <div key={i}>
+                          <div className="flex items-center justify-between text-xs mb-1.5 gap-3">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className={"inline-flex items-center justify-center w-6 h-5 rounded text-[10px] font-bold tabular-nums " + rankClass}>#{i + 1}</span>
+                              <span className="text-white font-bold truncate">{p.name}</span>
+                            </div>
+                            <span className="text-white/70 tabular-nums shrink-0 font-mono">{p.units} u <span className="text-white/40">· {fmtGs(p.revenue)}</span></span>
                           </div>
-                          <span className="text-white/70 tabular-nums shrink-0">{p.units} u <span className="text-white/40">· {fmtGs(p.revenue)}</span></span>
+                          <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                            <div className="h-full bg-gradient-to-r from-[#1FE620] to-[#1FE620]/60 transition-all rounded-full shadow-[0_0_12px_rgba(31,230,32,0.5)]" style={{ width: pct + "%" }}></div>
+                          </div>
                         </div>
-                        <div className="h-1.5 bg-white/5 rounded overflow-hidden">
-                          <div className="h-full bg-[#1FE620] transition-all" style={{ width: pct + "%" }}></div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </Content>
