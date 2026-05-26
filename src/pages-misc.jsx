@@ -91,13 +91,13 @@ function CheckoutPage() {
 
         {/* Steps */}
         <div className="flex items-center gap-2 mt-6 mb-8">
-          {["Datos", "Entrega", "Pago"].map((s, i) => (
+          {["Datos", "Entrega"].map((s, i, arr) => (
             <React.Fragment key={s}>
               <div className={`flex items-center gap-2 ${step >= i + 1 ? "text-[#1FE620]" : "text-white/40"}`}>
                 <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${step >= i + 1 ? "bg-[#1FE620] text-black" : "bg-white/5 text-white/60"}`}>{i + 1}</div>
                 <span className="text-xs uppercase tracking-wider font-bold hidden sm:inline">{s}</span>
               </div>
-              {i < 2 && <div className={`flex-1 h-px max-w-[60px] ${step > i + 1 ? "bg-[#1FE620]" : "bg-white/10"}`}></div>}
+              {i < arr.length - 1 && <div className={`flex-1 h-px max-w-[60px] ${step > i + 1 ? "bg-[#1FE620]" : "bg-white/10"}`}></div>}
             </React.Fragment>
           ))}
         </div>
@@ -142,19 +142,6 @@ function CheckoutPage() {
               )}
             </Section>
 
-            <Section title="3 · Pago">
-              <div className="flex items-center gap-3 p-4 rounded-md border border-[#1FE620]/30 bg-[#1FE620]/5">
-                <div className="w-10 h-10 rounded-md bg-[#1FE620] text-black flex items-center justify-center">
-                  <Icon name="shield" />
-                </div>
-                <div className="text-sm">
-                  <div className="text-white font-bold">Vas a pagar con PagoPar</div>
-                  <div className="text-white/60 text-xs mt-0.5">
-                    Tarjeta de crédito/débito, Tigo Money, Personal Pay, Giros Tigo, transferencias y más — vas a elegir en la próxima pantalla.
-                  </div>
-                </div>
-              </div>
-            </Section>
           </div>
 
           {/* Summary */}
