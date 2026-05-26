@@ -5,6 +5,7 @@
 // =====================================================================
 
 import { createClient } from "@supabase/supabase-js";
+import WebSocket from "ws";
 
 const URL_ = process.env.SUPABASE_URL || "";
 const KEY_ = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
@@ -21,9 +22,12 @@ export function getClient() {
   if (!isConfigured()) {
     throw new Error("Supabase backend no configurado: faltan SUPABASE_URL y/o SUPABASE_SERVICE_ROLE_KEY");
   }
+  // Supabase Realtime requiere WebSocket nativo. Node 20 no lo trae,
+  // así que le pasamos `ws` como transport. (En Node >= 22 esto no haría falta.)
   _client = createClient(URL_, KEY_, {
     db: { schema: SCHEMA },
     auth: { persistSession: false, autoRefreshToken: false },
+    realtime: { transport: WebSocket },
   });
   return _client;
 }
