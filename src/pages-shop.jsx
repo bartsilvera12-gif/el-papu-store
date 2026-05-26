@@ -72,7 +72,6 @@ function CatalogoPage() {
   const [filter, setFilter] = useStateShop(initialFilter);
   const [sort, setSort] = useStateShop("relevancia");
   const [search, setSearch] = useStateShop("");
-  const [priceMax, setPriceMax] = useStateShop(60000);
   const [showFilters, setShowFilters] = useStateShop(false);
 
   const filtered = useMemoShop(() => {
@@ -83,12 +82,11 @@ function CatalogoPage() {
     if (filter === "nuevo") arr = arr.filter(p => p.badge === "nuevo");
     if (filter === "top") arr = arr.filter(p => p.badge === "top");
     if (search) arr = arr.filter(p => p.nombre.toLowerCase().includes(search.toLowerCase()));
-    arr = arr.filter(p => p.precio <= priceMax);
     if (sort === "precio-asc") arr.sort((a, b) => a.precio - b.precio);
     if (sort === "precio-desc") arr.sort((a, b) => b.precio - a.precio);
     if (sort === "novedad") arr.sort((a, b) => (b.badge === "nuevo" ? 1 : 0) - (a.badge === "nuevo" ? 1 : 0));
     return arr;
-  }, [cat, filter, sort, search, priceMax]);
+  }, [cat, filter, sort, search]);
 
   const filtersBar = (
     <div className="space-y-5">
@@ -117,14 +115,6 @@ function CatalogoPage() {
             </button>
           ))}
         </div>
-      </div>
-      <div>
-        <div className="flex justify-between text-[10px] uppercase tracking-[0.3em] text-[#1FE620] font-bold mb-3">
-          <span>Precio máx</span><span className="text-white">{fmt(priceMax)}</span>
-        </div>
-        <input type="range" min="5000" max="80000" step="1000" value={priceMax}
-          onChange={(e) => setPriceMax(+e.target.value)}
-          className="w-full accent-[#1FE620]" />
       </div>
     </div>
   );
