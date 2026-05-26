@@ -1,4 +1,4 @@
-﻿-- =====================================================================
+-- =====================================================================
 -- El Papu Store — Seed inicial de categorías + productos reales
 -- =====================================================================
 -- Este es un TEMPLATE. Las URLs de Cloudinary se reemplazan corriendo:
