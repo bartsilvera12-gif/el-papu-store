@@ -12,6 +12,7 @@ import morgan from "morgan";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { pagoparRouter } from "./backend/routes-pagopar.js";
+import { pagoparConfig } from "./backend/pagopar.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT) || 3000;
@@ -92,8 +93,17 @@ app.use((err, _req, res, _next) => {
 
 // ─── Start ────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
+  const pg = pagoparConfig();
   console.log(`\n  El Papu Store`);
   console.log(`  → ${APP_URL}`);
   console.log(`  → env: ${NODE_ENV}`);
-  console.log(`  → healthcheck: ${APP_URL}/api/health\n`);
+  console.log(`  → healthcheck: ${APP_URL}/api/health`);
+  console.log(`  → pagopar mode: ${pg.mode}`);
+  console.log(`  → pagopar keys: public=${pg.public_key_set ? "set" : "MISSING"} private=${pg.private_key_set ? "set" : "MISSING"}`);
+  console.log(`  → pagopar base: ${pg.base_url}`);
+  console.log(`  → pagopar checkout: ${pg.checkout_url}`);
+  if (pg.webhook_url) {
+    console.log(`  → pagopar webhook (esperado en panel): ${pg.webhook_url}`);
+  }
+  console.log();
 });

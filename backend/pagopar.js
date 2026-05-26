@@ -18,6 +18,8 @@ const PUBLIC_KEY = process.env.PAGOPAR_PUBLIC_KEY || "";
 const PRIVATE_KEY = process.env.PAGOPAR_PRIVATE_KEY || "";
 const BASE_URL = process.env.PAGOPAR_BASE_URL || "https://api.pagopar.com/api";
 const CHECKOUT_URL = process.env.PAGOPAR_CHECKOUT_URL || "https://www.pagopar.com/pagos";
+const MODE = process.env.PAGOPAR_MODE || "production";
+const WEBHOOK_URL = process.env.PAGOPAR_WEBHOOK_URL || "";
 
 export function isConfigured() {
   return Boolean(PUBLIC_KEY && PRIVATE_KEY);
@@ -29,6 +31,19 @@ export function publicKey() {
 
 export function checkoutUrl(hash) {
   return `${CHECKOUT_URL}/${hash}`;
+}
+
+// Devuelve la config PagoPar SIN secrets. Útil para logs de boot y debug.
+// Nunca incluye PUBLIC_KEY ni PRIVATE_KEY: solo flags booleanos.
+export function pagoparConfig() {
+  return {
+    mode: MODE,
+    base_url: BASE_URL,
+    checkout_url: CHECKOUT_URL,
+    webhook_url: WEBHOOK_URL || null,
+    public_key_set: Boolean(PUBLIC_KEY),
+    private_key_set: Boolean(PRIVATE_KEY),
+  };
 }
 
 export function sha1(s) {
