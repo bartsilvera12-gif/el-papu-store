@@ -8,23 +8,49 @@ function CheckoutPage() {
   const { cart, cartTotal, navigate } = useShop();
   const [form, setForm] = useStateMisc({
     nombre: "", apellido: "", telefono: "", email: "", documento: "",
-    ciudad: "", direccion: "", referencia: "",
+    ciudad: "", ciudadOtra: "", direccion: "", referencia: "",
     entrega: "envio", pago: "pagopar",
   });
   const [step, setStep] = useStateMisc(1);
   const [submitting, setSubmitting] = useStateMisc(false);
   const [errorMsg, setErrorMsg] = useStateMisc("");
+  const [fieldErrors, setFieldErrors] = useStateMisc({});
 
-  const handle = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const handle = (k, v) => {
+    setForm(f => ({ ...f, [k]: v }));
+    if (fieldErrors[k]) setFieldErrors(fe => ({ ...fe, [k]: "" }));
+  };
 
   const envio = form.entrega === "envio" ? 3500 : 0;
   const total = cartTotal + envio;
 
-  // Validación mínima de campos requeridos por PagoPar
+  // Campos que exige PagoPar para crear la transacción
   function validateForCheckout() {
-    if (!form.nombre.trim()) return "Ingresá tu nombre.";
-    if (!form.telefono.trim()) return "Ingresá tu teléfono.";
-    if (!form.email.trim() || !/^\S+@\S+\.\S+$/.test(form.email)) return "Ingresá un email válido.";
+    const errs = {};
+    const onlyDigits = s => (s || "").replace(/\D/g, "");
+
+    if (!form.nombre.trim()) errs.nombre = "Requerido";
+    if (!form.apellido.trim()) errs.apellido = "Requerido";
+
+    const tel = onlyDigits(form.telefono);
+    if (!tel) errs.telefono = "Requerido";
+    else if (tel.length < 8 || tel.length > 15) errs.telefono = "Número inválido";
+
+    if (!form.email.trim()) errs.email = "Requerido";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(form.email.trim())) errs.email = "Email inválido";
+
+    const doc = onlyDigits(form.documento);
+    if (!doc) errs.documento = "Requerido";
+    else if (doc.length < 4 || doc.length > 9) errs.documento = "Cédula inválida (4 a 9 dígitos)";
+
+    if (!form.ciudad) errs.ciudad = "Requerido";
+    if (form.ciudad === "Otra" && !form.ciudadOtra.trim()) errs.ciudadOtra = "Indicá tu ciudad";
+
+    if (!form.direccion.trim()) errs.direccion = "Requerido";
+    else if (form.direccion.trim().length < 5) errs.direccion = "Dirección muy corta";
+
+    setFieldErrors(errs);
+    if (Object.keys(errs).length > 0) return "Revisá los campos marcados en rojo.";
     if (total < 1000) return "El total debe ser al menos Gs. 1.000.";
     return "";
   }
@@ -91,7 +117,7 @@ function CheckoutPage() {
 
         {/* Steps */}
         <div className="flex items-center gap-2 mt-6 mb-8">
-          {["Datos", "Entrega"].map((s, i, arr) => (
+          {["Datos", "Dirección", "Entrega"].map((s, i, arr) => (
             <React.Fragment key={s}>
               <div className={`flex items-center gap-2 ${step >= i + 1 ? "text-[#1FE620]" : "text-white/40"}`}>
                 <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${step >= i + 1 ? "bg-[#1FE620] text-black" : "bg-white/5 text-white/60"}`}>{i + 1}</div>
@@ -106,18 +132,33 @@ function CheckoutPage() {
           <div className="space-y-6">
             <Section title="1 · Tus datos">
               <div className="grid sm:grid-cols-2 gap-3">
-                <Input label="Nombre" value={form.nombre} onChange={v => handle("nombre", v)} />
-                <Input label="Apellido" value={form.apellido} onChange={v => handle("apellido", v)} />
-                <Input label="Teléfono" value={form.telefono} onChange={v => handle("telefono", v)} placeholder="+595 9..." />
-                <Input label="Email" value={form.email} onChange={v => handle("email", v)} type="email" />
+                <Input label="Nombre" required value={form.nombre} onChange={v => handle("nombre", v)} error={fieldErrors.nombre} />
+                <Input label="Apellido" required value={form.apellido} onChange={v => handle("apellido", v)} error={fieldErrors.apellido} />
+                <Input label="Teléfono" required value={form.telefono} onChange={v => handle("telefono", v)} placeholder="+595 9..." error={fieldErrors.telefono} />
+                <Input label="Email" required type="email" value={form.email} onChange={v => handle("email", v)} error={fieldErrors.email} />
                 <div className="sm:col-span-2">
-                  <Input label="Cédula / CI (opcional)" value={form.documento} onChange={v => handle("documento", v)} placeholder="Mejora la validación del pago" />
+                  <Input label="Cédula / CI" required value={form.documento} onChange={v => handle("documento", v)} placeholder="Solo números, sin puntos" error={fieldErrors.documento} />
                 </div>
               </div>
             </Section>
 
-            <Section title="2 · Método de entrega">
-              <div className="grid sm:grid-cols-3 gap-2 mb-4">
+            <Section title="2 · Dirección de envío / facturación">
+              <div className="grid sm:grid-cols-2 gap-3">
+                <Select label="Ciudad" required value={form.ciudad} onChange={v => handle("ciudad", v)} options={CIUDADES_PY} error={fieldErrors.ciudad} />
+                {form.ciudad === "Otra" && (
+                  <Input label="Indicá tu ciudad" required value={form.ciudadOtra} onChange={v => handle("ciudadOtra", v)} error={fieldErrors.ciudadOtra} />
+                )}
+                <div className={form.ciudad === "Otra" ? "sm:col-span-2" : "sm:col-span-1"}>
+                  <Input label="Dirección" required value={form.direccion} onChange={v => handle("direccion", v)} placeholder="Calle y número" error={fieldErrors.direccion} />
+                </div>
+                <div className="sm:col-span-2">
+                  <Input label="Referencia / Piso / Depto" value={form.referencia} onChange={v => handle("referencia", v)} placeholder="Opcional — ayuda al delivery" />
+                </div>
+              </div>
+            </Section>
+
+            <Section title="3 · Método de entrega">
+              <div className="grid sm:grid-cols-3 gap-2">
                 {[
                   { id: "envio", t: "Envío a domicilio", d: fmt(3500), icon: "truck" },
                   { id: "retiro", t: "Retiro coordinado", d: "Sin costo", icon: "box" },
@@ -131,15 +172,6 @@ function CheckoutPage() {
                   </button>
                 ))}
               </div>
-              {form.entrega === "envio" && (
-                <div className="grid sm:grid-cols-2 gap-3">
-                  <Input label="Ciudad" value={form.ciudad} onChange={v => handle("ciudad", v)} />
-                  <Input label="Dirección" value={form.direccion} onChange={v => handle("direccion", v)} />
-                  <div className="sm:col-span-2">
-                    <Input label="Referencia / Piso / Depto" value={form.referencia} onChange={v => handle("referencia", v)} />
-                  </div>
-                </div>
-              )}
             </Section>
 
           </div>
@@ -197,16 +229,48 @@ function Section({ title, children }) {
   );
 }
 
-function Input({ label, value, onChange, type = "text", placeholder = "" }) {
+function Input({ label, value, onChange, type = "text", placeholder = "", required = false, error = "" }) {
   return (
     <label className="block">
-      <span className="text-[10px] uppercase tracking-wider text-white/50 font-bold mb-1.5 block">{label}</span>
+      <span className="text-[10px] uppercase tracking-wider text-white/50 font-bold mb-1.5 flex items-center gap-1">
+        {label}
+        {required && <span className="text-[#ff5b5b]">*</span>}
+      </span>
       <input type={type} value={value} placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-[#111] border border-white/10 focus:border-[#1FE620]/60 outline-none rounded-md px-4 py-3 text-white text-sm placeholder:text-white/30 transition" />
+        className={`w-full bg-[#111] border outline-none rounded-md px-4 py-3 text-white text-sm placeholder:text-white/30 transition ${
+          error ? "border-[#ff5b5b]/60 focus:border-[#ff5b5b]" : "border-white/10 focus:border-[#1FE620]/60"
+        }`} />
+      {error && <span className="text-[#ff5b5b] text-[10px] mt-1 block">{error}</span>}
     </label>
   );
 }
+
+function Select({ label, value, onChange, options, required = false, error = "" }) {
+  return (
+    <label className="block">
+      <span className="text-[10px] uppercase tracking-wider text-white/50 font-bold mb-1.5 flex items-center gap-1">
+        {label}
+        {required && <span className="text-[#ff5b5b]">*</span>}
+      </span>
+      <select value={value} onChange={(e) => onChange(e.target.value)}
+        className={`w-full bg-[#111] border outline-none rounded-md px-4 py-3 text-white text-sm transition ${
+          error ? "border-[#ff5b5b]/60 focus:border-[#ff5b5b]" : "border-white/10 focus:border-[#1FE620]/60"
+        }`}>
+        <option value="">— Seleccioná —</option>
+        {options.map(o => <option key={o} value={o}>{o}</option>)}
+      </select>
+      {error && <span className="text-[#ff5b5b] text-[10px] mt-1 block">{error}</span>}
+    </label>
+  );
+}
+
+const CIUDADES_PY = [
+  "Asunción", "Lambaré", "San Lorenzo", "Fernando de la Mora", "Luque",
+  "Mariano R. Alonso", "Ñemby", "Capiatá", "Areguá", "Itauguá",
+  "Limpio", "San Antonio", "Villa Elisa", "Encarnación", "Ciudad del Este",
+  "Coronel Oviedo", "Caacupé", "Pedro Juan Caballero", "Concepción", "Otra",
+];
 
 // ----------------------- Success -----------------------
 

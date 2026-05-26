@@ -43,8 +43,32 @@ export function pagoparRouter() {
       if (!Array.isArray(cart) || cart.length === 0) {
         return res.status(400).json({ success: false, error: "empty_cart" });
       }
-      if (!form || !form.nombre || !form.telefono || !form.email) {
-        return res.status(400).json({ success: false, error: "missing_customer_fields" });
+      if (!form) {
+        return res.status(400).json({ success: false, error: "missing_form" });
+      }
+      const trim = s => (typeof s === "string" ? s.trim() : "");
+      const onlyDigits = s => (typeof s === "string" ? s.replace(/\D/g, "") : "");
+      const required = {
+        nombre: trim(form.nombre),
+        apellido: trim(form.apellido),
+        telefono: onlyDigits(form.telefono),
+        email: trim(form.email),
+        documento: onlyDigits(form.documento || form.ci),
+        ciudad: trim(form.ciudad === "Otra" ? form.ciudadOtra : form.ciudad),
+        direccion: trim(form.direccion),
+      };
+      const missing = Object.entries(required).filter(([_, v]) => !v).map(([k]) => k);
+      if (missing.length) {
+        return res.status(400).json({ success: false, error: "missing_customer_fields", detail: missing });
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(required.email)) {
+        return res.status(400).json({ success: false, error: "invalid_email" });
+      }
+      if (required.telefono.length < 8 || required.telefono.length > 15) {
+        return res.status(400).json({ success: false, error: "invalid_phone" });
+      }
+      if (required.documento.length < 4 || required.documento.length > 9) {
+        return res.status(400).json({ success: false, error: "invalid_document" });
       }
 
       const supabase = getSupabase();
@@ -114,8 +138,8 @@ export function pagoparRouter() {
       const order_code = "PAPU-" + Math.floor(10000 + Math.random() * 90000);
       const id_pedido_comercio = generarIdPedidoComercio();
 
-      const customer_name = String(form.nombre || "").trim();
-      const customer_lastname = form.apellido ? String(form.apellido).trim() : null;
+      const customer_name = required.nombre;
+      const customer_lastname = required.apellido;
 
       const orderInsert = {
         order_code,
@@ -126,12 +150,12 @@ export function pagoparRouter() {
         pagopar_id_pedido_comercio: id_pedido_comercio,
         customer_name,
         customer_lastname,
-        customer_phone: form.telefono || null,
-        customer_email: form.email || null,
+        customer_phone: required.telefono,
+        customer_email: required.email,
         delivery_method: form.entrega || null,
-        address: form.direccion || null,
-        city: form.ciudad || null,
-        reference: form.referencia || null,
+        address: required.direccion,
+        city: required.ciudad,
+        reference: trim(form.referencia) || null,
         subtotal,
         shipping_amount: envio,
         total,
@@ -160,18 +184,33 @@ export function pagoparRouter() {
 
       // ───── Armar payload PagoPar
       const token = signCreateToken(id_pedido_comercio, total);
+
+      // Detectar tipo de documento: si tiene formato RUC (>= 7 dígitos + guión opcional)
+      // o si trae explícitamente RUC, lo marcamos. Sino, asumimos CI.
+      const docDigits = required.documento;
+      const tipoDoc = docDigits.length >= 7 && /^\d{7,8}-?\d?$/.test(String(form.documento || "").trim())
+        ? "RUC" : "CI";
+
+      // Nombre completo y razon_social (PagoPar exige ambos)
+      const fullName = `${customer_name} ${customer_lastname}`.trim();
+
+      // Dirección con referencia incorporada si el comprador la mandó (PagoPar la pide aparte
+      // igual, pero algunas integraciones requieren que la dirección incluya datos suficientes)
+      const direccionComprador = required.direccion;
+      const direccionReferencia = trim(form.referencia) || `Ciudad: ${required.ciudad}`;
+
       const comprador = {
-        ruc: "",
-        email: form.email,
-        ciudad: "1",
-        nombre: [customer_name, customer_lastname].filter(Boolean).join(" "),
-        telefono: form.telefono,
-        direccion: form.direccion || "",
-        documento: form.documento || form.ci || "",
+        ruc: tipoDoc === "RUC" ? docDigits : "",
+        email: required.email,
+        ciudad: "1", // ID de ciudad PagoPar; "1" (Asunción) acepta como default seguro
+        nombre: fullName,
+        telefono: required.telefono,
+        direccion: direccionComprador,
+        documento: docDigits,
         coordenadas: "",
-        razon_social: [customer_name, customer_lastname].filter(Boolean).join(" "),
-        tipo_documento: "CI",
-        direccion_referencia: form.referencia || "",
+        razon_social: fullName,
+        tipo_documento: tipoDoc,
+        direccion_referencia: direccionReferencia,
       };
 
       const compras_items = items.map(it => ({
