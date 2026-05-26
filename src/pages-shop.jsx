@@ -203,9 +203,20 @@ function CatalogoPage() {
 function DetallePage() {
   const { PRODUCTS } = window.__PAPU_DATA__;
   const { route, addToCart, navigate } = useShop();
-  const product = PRODUCTS.find(p => p.id === route.params?.id) || PRODUCTS[0];
+  const product = PRODUCTS.find(p => p.id === route.params?.id) || PRODUCTS[0] || null;
   const [qty, setQty] = useStateShop(1);
   const [activeImg, setActiveImg] = useStateShop(0);
+
+  if (!product) {
+    return (
+      <main className="pt-24 pb-20 min-h-[60vh] flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-white/40 text-sm uppercase tracking-[0.3em] mb-3">Cargando producto...</div>
+          <button onClick={() => navigate("catalogo")} className="text-[#1FE620] hover:underline text-sm">Volver al catálogo</button>
+        </div>
+      </main>
+    );
+  }
 
   // Simulate gallery using product image + 3 vecinos en el array.
   // Antes hacíamos product.id % length asumiendo id numérico, pero con

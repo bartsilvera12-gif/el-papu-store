@@ -5,7 +5,9 @@ const { useState: useStateHome, useEffect: useEffectHome } = React;
 function Hero() {
   const { navigate } = useShop();
   const { PRODUCTS } = window.__PAPU_DATA__;
-  const featured = PRODUCTS[0]; // Auriculares
+  // Destacado: primer producto is_featured, sino el primero del catálogo,
+  // sino null (catálogo vacío o todavía cargando desde Supabase).
+  const featured = PRODUCTS.find(p => p.is_featured) || PRODUCTS[0] || null;
 
   return (
     <section className="relative min-h-[100vh] sm:min-h-[92vh] flex items-center pt-24 pb-12 overflow-hidden">
@@ -65,44 +67,49 @@ function Hero() {
           </div>
 
           {/* Featured product card */}
-          <div className="lg:col-span-5 relative">
-            <div className="relative animate-float">
-              <div className="absolute -inset-1 bg-gradient-to-br from-[#1FE620]/30 to-transparent rounded-2xl blur-2xl"></div>
-              <div className="relative bg-[#0a0a0a] border border-[#1FE620]/30 rounded-2xl overflow-hidden shadow-[0_30px_80px_-20px_rgba(31,230,32,0.3)]">
-                <div className="absolute top-4 left-4 right-4 flex justify-between items-start z-10">
-                  <Badge kind="viral">Viral</Badge>
-                  <div className="text-white font-display text-3xl drop-shadow-[0_0_12px_#1FE620]">-29%</div>
-                </div>
-                <div className={`aspect-[5/6] bg-gradient-to-br ${featured.color} relative`}>
-                  <img src={featured.img} alt={featured.nombre}
-                    className="absolute inset-0 w-full h-full object-cover opacity-90" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent"></div>
-                  {/* Floating stamp - inside the image so it cannot overlap anything below */}
-                  <div className="absolute bottom-4 right-4 w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white text-black font-display text-sm flex items-center justify-center rotate-[-12deg] ring-2 ring-[#1FE620] shadow-[0_0_30px_rgba(31,230,32,0.6)] animate-stamp z-20">
-                    <div className="text-center leading-tight">
-                      HOT<br/>DROP
+          {featured ? (
+            <div className="lg:col-span-5 relative">
+              <div className="relative animate-float">
+                <div className="absolute -inset-1 bg-gradient-to-br from-[#1FE620]/30 to-transparent rounded-2xl blur-2xl"></div>
+                <div className="relative bg-[#0a0a0a] border border-[#1FE620]/30 rounded-2xl overflow-hidden shadow-[0_30px_80px_-20px_rgba(31,230,32,0.3)]">
+                  <div className="absolute top-4 left-4 right-4 flex justify-between items-start z-10">
+                    {featured.badge ? <Badge kind={featured.badge}>{featured.badge}</Badge> : <span />}
+                    {featured.precioAnterior && featured.precio
+                      ? <div className="text-white font-display text-3xl drop-shadow-[0_0_12px_#1FE620]">-{Math.round((1 - featured.precio / featured.precioAnterior) * 100)}%</div>
+                      : null}
+                  </div>
+                  <div className={`aspect-[5/6] bg-gradient-to-br ${featured.color || "from-emerald-500/20 to-black"} relative`}>
+                    <img src={featured.img} alt={featured.nombre}
+                      className="absolute inset-0 w-full h-full object-cover opacity-90" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent"></div>
+                    <div className="absolute bottom-4 right-4 w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white text-black font-display text-sm flex items-center justify-center rotate-[-12deg] ring-2 ring-[#1FE620] shadow-[0_0_30px_rgba(31,230,32,0.6)] animate-stamp z-20">
+                      <div className="text-center leading-tight">
+                        HOT<br/>DROP
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="p-5 border-t border-white/5 bg-[#0a0a0a]">
-                  <div className="text-[10px] uppercase tracking-[0.3em] text-[#1FE620] mb-2">Producto destacado</div>
-                  <div className="text-white font-bold text-xl mb-3">{featured.nombre}</div>
-                  <div className="flex items-end justify-between">
-                    <div>
-                      <div className="text-white/40 line-through text-sm">{fmt(featured.precioAnterior)}</div>
-                      <div className="font-display text-4xl text-white drop-shadow-[0_0_10px_rgba(31,230,32,0.4)]">{fmt(featured.precio)}</div>
+                  <div className="p-5 border-t border-white/5 bg-[#0a0a0a]">
+                    <div className="text-[10px] uppercase tracking-[0.3em] text-[#1FE620] mb-2">Producto destacado</div>
+                    <div className="text-white font-bold text-xl mb-3">{featured.nombre}</div>
+                    <div className="flex items-end justify-between">
+                      <div>
+                        {featured.precioAnterior ? <div className="text-white/40 line-through text-sm">{fmt(featured.precioAnterior)}</div> : null}
+                        <div className="font-display text-4xl text-white drop-shadow-[0_0_10px_rgba(31,230,32,0.4)]">{fmt(featured.precio)}</div>
+                      </div>
+                      <button onClick={() => navigate("detalle", { id: featured.id })}
+                        className="bg-white hover:bg-white text-black p-3 rounded-md transition-all ring-1 ring-[#1FE620]/40 hover:ring-[#1FE620] hover:shadow-[0_0_20px_rgba(31,230,32,0.5)]">
+                        <Icon name="arrow-right" />
+                      </button>
                     </div>
-                    <button onClick={() => navigate("detalle", { id: featured.id })}
-                      className="bg-white hover:bg-white text-black p-3 rounded-md transition-all ring-1 ring-[#1FE620]/40 hover:ring-[#1FE620] hover:shadow-[0_0_20px_rgba(31,230,32,0.5)]">
-                      <Icon name="arrow-right" />
-                    </button>
                   </div>
                 </div>
               </div>
-
-              {/* (stamp moved inside the image to prevent overlap with marquee/section bottom) */}
             </div>
-          </div>
+          ) : (
+            <div className="lg:col-span-5 relative">
+              <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl aspect-[5/6] animate-pulse" />
+            </div>
+          )}
         </div>
       </div>
 
