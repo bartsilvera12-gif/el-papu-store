@@ -11,6 +11,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { pagoparRouter } from "./backend/routes-pagopar.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT) || 3000;
@@ -46,10 +47,7 @@ app.get("/api/health", (_req, res) => {
 });
 
 // ─── API routes ───────────────────────────────────────────────────────
-// Acá van a vivir los endpoints de PagoPar:
-//   app.post("/api/pagopar/crear", ...)
-//   app.post("/api/pagopar/webhook", ...)
-// Por ahora solo el healthcheck.
+app.use("/api/pagopar", pagoparRouter());
 
 // ─── Estáticos ────────────────────────────────────────────────────────
 // MIME para .jsx (Babel standalone los lee como text/babel en el client)

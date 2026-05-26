@@ -5,39 +5,64 @@ const { useState: useStateMisc } = React;
 // ----------------------- Checkout -----------------------
 
 function CheckoutPage() {
-  const { cart, cartTotal, navigate, clearCart } = useShop();
+  const { cart, cartTotal, navigate } = useShop();
   const [form, setForm] = useStateMisc({
-    nombre: "", apellido: "", telefono: "", email: "",
+    nombre: "", apellido: "", telefono: "", email: "", documento: "",
     ciudad: "", direccion: "", referencia: "",
-    entrega: "envio", pago: "transferencia",
+    entrega: "envio", pago: "pagopar",
   });
   const [step, setStep] = useStateMisc(1);
   const [submitting, setSubmitting] = useStateMisc(false);
+  const [errorMsg, setErrorMsg] = useStateMisc("");
 
   const handle = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   const envio = form.entrega === "envio" ? 3500 : 0;
   const total = cartTotal + envio;
 
+  // Validación mínima de campos requeridos por PagoPar
+  function validateForCheckout() {
+    if (!form.nombre.trim()) return "Ingresá tu nombre.";
+    if (!form.telefono.trim()) return "Ingresá tu teléfono.";
+    if (!form.email.trim() || !/^\S+@\S+\.\S+$/.test(form.email)) return "Ingresá un email válido.";
+    if (total < 1000) return "El total debe ser al menos Gs. 1.000.";
+    return "";
+  }
+
   const submit = async (e) => {
     e?.preventDefault();
     if (submitting) return;
+    setErrorMsg("");
+
+    const err = validateForCheckout();
+    if (err) { setErrorMsg(err); return; }
+
     setSubmitting(true);
-    let order_code = "PAPU-" + Math.floor(10000 + Math.random() * 90000);
     try {
-      if (window.PapuStoreAPI && window.PapuStoreAPI.createOrder) {
-        const res = await window.PapuStoreAPI.createOrder({
-          cart, form, totals: { subtotal: cartTotal, envio, total },
-        });
-        if (res && res.order_code) order_code = res.order_code;
+      const res = await fetch("/api/pagopar/crear", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cart, form }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success || !data.redirectUrl) {
+        const msg = (data && (data.detail || data.error)) || "No pudimos iniciar el pago.";
+        throw new Error(msg);
       }
+      // Guardar referencia local para mostrar en pantalla de resultado
+      window.__PAPU_LAST_ORDER__ = {
+        order_code: data.order_code,
+        hash: data.hash,
+        total,
+        at: Date.now(),
+      };
+      // Redirigir al checkout de PagoPar (misma pestaña)
+      window.location.href = data.redirectUrl;
     } catch (err) {
-      console.warn("[papu] checkout: usando código local por fallo:", err);
+      console.error("[papu] checkout PagoPar:", err);
+      setErrorMsg("No pudimos iniciar el pago con PagoPar. Intentá de nuevo.");
+      setSubmitting(false);
     }
-    window.__PAPU_LAST_ORDER__ = { order_code, total, at: Date.now() };
-    navigate("success");
-    setTimeout(() => clearCart(), 1500);
-    setSubmitting(false);
   };
 
   if (cart.length === 0) {
@@ -83,8 +108,11 @@ function CheckoutPage() {
               <div className="grid sm:grid-cols-2 gap-3">
                 <Input label="Nombre" value={form.nombre} onChange={v => handle("nombre", v)} />
                 <Input label="Apellido" value={form.apellido} onChange={v => handle("apellido", v)} />
-                <Input label="Teléfono" value={form.telefono} onChange={v => handle("telefono", v)} placeholder="+54 9 ..." />
+                <Input label="Teléfono" value={form.telefono} onChange={v => handle("telefono", v)} placeholder="+595 9..." />
                 <Input label="Email" value={form.email} onChange={v => handle("email", v)} type="email" />
+                <div className="sm:col-span-2">
+                  <Input label="Cédula / CI (opcional)" value={form.documento} onChange={v => handle("documento", v)} placeholder="Mejora la validación del pago" />
+                </div>
               </div>
             </Section>
 
@@ -114,25 +142,17 @@ function CheckoutPage() {
               )}
             </Section>
 
-            <Section title="3 · Método de pago">
-              <div className="grid sm:grid-cols-2 gap-2">
-                {[
-                  { id: "transferencia", t: "Transferencia bancaria", d: "Te enviamos los datos", icon: "bolt" },
-                  { id: "recibir", t: "Pago al recibir", d: "Efectivo en el momento", icon: "tag" },
-                  { id: "online", t: "Pago online", d: "Link seguro de pago", icon: "shield" },
-                  { id: "wa", t: "Coordinar por WhatsApp", d: "Hablamos los detalles", icon: "whatsapp" },
-                ].map(o => (
-                  <button key={o.id} type="button" onClick={() => handle("pago", o.id)}
-                    className={`text-left p-4 rounded-md border transition flex items-center gap-3 ${form.pago === o.id ? "border-[#1FE620] bg-[#1FE620]/5 shadow-[0_0_12px_rgba(31,230,32,0.15)]" : "border-white/10 bg-[#0d0d0d] hover:border-white/20"}`}>
-                    <div className={`w-10 h-10 rounded-md flex items-center justify-center ${form.pago === o.id ? "bg-[#1FE620] text-black" : "bg-white/5 text-white/70"}`}>
-                      <Icon name={o.icon} />
-                    </div>
-                    <div>
-                      <div className="text-white font-bold text-sm">{o.t}</div>
-                      <div className="text-white/50 text-xs">{o.d}</div>
-                    </div>
-                  </button>
-                ))}
+            <Section title="3 · Pago">
+              <div className="flex items-center gap-3 p-4 rounded-md border border-[#1FE620]/30 bg-[#1FE620]/5">
+                <div className="w-10 h-10 rounded-md bg-[#1FE620] text-black flex items-center justify-center">
+                  <Icon name="shield" />
+                </div>
+                <div className="text-sm">
+                  <div className="text-white font-bold">Vas a pagar con PagoPar</div>
+                  <div className="text-white/60 text-xs mt-0.5">
+                    Tarjeta de crédito/débito, Tigo Money, Personal Pay, Giros Tigo, transferencias y más — vas a elegir en la próxima pantalla.
+                  </div>
+                </div>
               </div>
             </Section>
           </div>
@@ -162,10 +182,15 @@ function CheckoutPage() {
                 </div>
               </div>
               <GlowButton type="submit" className="w-full mt-5" disabled={submitting}>
-                {submitting ? "Procesando..." : (<>Confirmar pedido <Icon name="check" className="w-4 h-4" /></>)}
+                {submitting ? "Redirigiendo a PagoPar..." : (<>Confirmar pedido <Icon name="arrow-right" className="w-4 h-4" /></>)}
               </GlowButton>
+              {errorMsg && (
+                <div className="mt-3 p-3 rounded-md border border-red-500/30 bg-red-500/10 text-red-300 text-xs">
+                  {errorMsg}
+                </div>
+              )}
               <div className="flex items-center gap-2 text-xs text-white/40 mt-3">
-                <Icon name="shield" className="w-3.5 h-3.5" /> Compra segura · Datos protegidos
+                <Icon name="shield" className="w-3.5 h-3.5" /> Compra segura vía PagoPar
               </div>
             </div>
           </aside>
@@ -461,4 +486,165 @@ function PoliticasPage() {
   );
 }
 
-Object.assign(window, { CheckoutPage, SuccessPage, SobrePage, FAQPage, ContactoPage, PoliticasPage });
+// ----------------------- PagoPar Result -----------------------
+// PagoPar redirige al cliente a /pagopar/resultado/<hash> después del
+// pago. Esta pantalla consulta al backend el estado real (no confía
+// en el cliente) y muestra Pagado / Pendiente / Cancelado / Error.
+
+function PagoparResultPage() {
+  const { navigate, clearCart } = useShop();
+  // El hash lo dejamos en window.__PAPU_PG_HASH__ durante el bootstrap
+  // (app.jsx detecta la ruta y lo extrae del pathname).
+  const hash = window.__PAPU_PG_HASH__ || "";
+  const [loading, setLoading] = useStateMisc(true);
+  const [data, setData] = useStateMisc(null);
+  const [errorMsg, setErrorMsg] = useStateMisc("");
+  const cartClearedRef = React.useRef(false);
+
+  const consultar = React.useCallback(async () => {
+    if (!hash) { setErrorMsg("Falta el hash del pago."); setLoading(false); return; }
+    setLoading(true);
+    setErrorMsg("");
+    try {
+      const res = await fetch("/api/pagopar/consultar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hash_pedido: hash }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error((json && (json.detail || json.error)) || "consulta_falló");
+      }
+      setData(json);
+      if (json.pagado && !cartClearedRef.current) {
+        cartClearedRef.current = true;
+        clearCart();
+      }
+    } catch (err) {
+      console.error("[papu] consultar PagoPar:", err);
+      setErrorMsg("No pudimos consultar el estado del pago.");
+    } finally {
+      setLoading(false);
+    }
+  }, [hash, clearCart]);
+
+  React.useEffect(() => { consultar(); }, [consultar]);
+
+  const last = (typeof window !== "undefined" && window.__PAPU_LAST_ORDER__) || {};
+
+  return (
+    <main data-screen-label="PagoparResult" className="pt-32 pb-20 min-h-screen relative overflow-hidden">
+      <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "radial-gradient(ellipse 50% 40% at 50% 30%, rgba(31,230,32,0.18), transparent 60%)" }}></div>
+      <div className="relative max-w-2xl mx-auto px-4 sm:px-6 text-center">
+        {loading && (
+          <>
+            <div className="w-20 h-20 rounded-full border-2 border-[#1FE620]/30 border-t-[#1FE620] animate-spin mx-auto mb-6" />
+            <div className="text-white/60 text-sm uppercase tracking-[0.3em]">Consultando estado del pago…</div>
+          </>
+        )}
+
+        {!loading && errorMsg && (
+          <>
+            <div className="w-24 h-24 rounded-full bg-red-500/15 border border-red-500/40 mx-auto mb-5 flex items-center justify-center">
+              <Icon name="x" className="w-10 h-10 text-red-400" />
+            </div>
+            <h1 className="font-display text-4xl text-white mb-3">Error al consultar</h1>
+            <p className="text-white/60 mb-6">{errorMsg}</p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <GlowButton onClick={consultar}>Reintentar</GlowButton>
+              <GlowButton variant="outline" onClick={() => navigate("home")}>Volver al inicio</GlowButton>
+            </div>
+          </>
+        )}
+
+        {!loading && !errorMsg && data && (
+          <>
+            {data.estado === "paid" && (
+              <>
+                <div className="relative inline-block mb-6">
+                  <div className="absolute inset-0 bg-[#1FE620]/40 blur-3xl animate-pulse"></div>
+                  <div className="relative w-28 h-28 rounded-full bg-white flex items-center justify-center ring-2 ring-[#1FE620] shadow-[0_0_60px_rgba(31,230,32,0.6)] animate-pop">
+                    <Icon name="check" className="w-14 h-14 text-black" />
+                  </div>
+                </div>
+                <div className="text-[#1FE620] uppercase tracking-[0.3em] text-[11px] font-bold mb-2">Pago confirmado</div>
+                <h1 className="font-display text-5xl sm:text-6xl text-white mb-4 leading-[0.95]">
+                  ¡Tu pago se <span className="text-white drop-shadow-[0_0_18px_rgba(31,230,32,0.6)]" style={{ WebkitTextStroke: "1.5px #1FE620" }}>aprobó!</span>
+                </h1>
+                <p className="text-white/70 text-lg mb-8">
+                  Gracias por tu compra en El Papu Store. Te vamos a contactar para coordinar la entrega.
+                </p>
+              </>
+            )}
+
+            {data.estado === "pending" && (
+              <>
+                <div className="w-24 h-24 rounded-full bg-yellow-500/15 border border-yellow-500/40 mx-auto mb-5 flex items-center justify-center">
+                  <Icon name="bolt" className="w-10 h-10 text-yellow-400" />
+                </div>
+                <div className="text-yellow-400 uppercase tracking-[0.3em] text-[11px] font-bold mb-2">Pago pendiente</div>
+                <h1 className="font-display text-4xl text-white mb-3">Estamos esperando la confirmación</h1>
+                <p className="text-white/60 mb-6">
+                  Si pagaste en efectivo o por transferencia, puede tardar unos minutos.
+                  Volvé a consultar en un rato.
+                </p>
+              </>
+            )}
+
+            {data.estado === "cancelled" && (
+              <>
+                <div className="w-24 h-24 rounded-full bg-red-500/15 border border-red-500/40 mx-auto mb-5 flex items-center justify-center">
+                  <Icon name="x" className="w-10 h-10 text-red-400" />
+                </div>
+                <div className="text-red-400 uppercase tracking-[0.3em] text-[11px] font-bold mb-2">Pago cancelado</div>
+                <h1 className="font-display text-4xl text-white mb-3">No se completó el pago</h1>
+                <p className="text-white/60 mb-6">El pago fue cancelado. Podés intentar de nuevo desde el carrito.</p>
+              </>
+            )}
+
+            <div className="bg-[#0a0a0a] border border-[#1FE620]/20 rounded-xl p-5 text-left text-sm space-y-2 mb-6">
+              {(data.order_code || last.order_code) && (
+                <div className="flex justify-between text-white/60">
+                  <span>Pedido</span>
+                  <span className="text-white font-mono">{data.order_code || last.order_code}</span>
+                </div>
+              )}
+              {data.numero_pedido && (
+                <div className="flex justify-between text-white/60">
+                  <span>N° PagoPar</span>
+                  <span className="text-white font-mono">{data.numero_pedido}</span>
+                </div>
+              )}
+              {data.forma_pago && (
+                <div className="flex justify-between text-white/60">
+                  <span>Forma de pago</span>
+                  <span className="text-white">{data.forma_pago}</span>
+                </div>
+              )}
+              {data.monto != null && (
+                <div className="flex justify-between text-white/60">
+                  <span>Monto</span>
+                  <span className="text-white">Gs. {Number(data.monto).toLocaleString("es-PY")}</span>
+                </div>
+              )}
+              {data.fecha_pago && (
+                <div className="flex justify-between text-white/60">
+                  <span>Fecha pago</span>
+                  <span className="text-white">{data.fecha_pago}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              {data.estado === "pending" && <GlowButton onClick={consultar}>Volver a consultar</GlowButton>}
+              {data.estado === "cancelled" && <GlowButton onClick={() => navigate("catalogo")}>Volver al catálogo</GlowButton>}
+              <GlowButton variant="outline" onClick={() => navigate("home")}>Volver al inicio</GlowButton>
+            </div>
+          </>
+        )}
+      </div>
+    </main>
+  );
+}
+
+Object.assign(window, { CheckoutPage, SuccessPage, SobrePage, FAQPage, ContactoPage, PoliticasPage, PagoparResultPage });

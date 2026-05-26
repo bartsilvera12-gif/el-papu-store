@@ -18,18 +18,30 @@ window.addEventListener("error", (e) => {
 function Router() {
   const { route } = useShop();
   switch (route.name) {
-    case "home":      return <HomePage />;
-    case "catalogo":  return <CatalogoPage />;
-    case "detalle":   return <DetallePage />;
-    case "checkout":  return <CheckoutPage />;
-    case "success":   return <SuccessPage />;
-    case "sobre":     return <SobrePage />;
-    case "faq":       return <FAQPage />;
-    case "contacto":  return <ContactoPage />;
-    case "politicas": return <PoliticasPage />;
-    default:          return <HomePage />;
+    case "home":            return <HomePage />;
+    case "catalogo":        return <CatalogoPage />;
+    case "detalle":         return <DetallePage />;
+    case "checkout":        return <CheckoutPage />;
+    case "success":         return <SuccessPage />;
+    case "sobre":           return <SobrePage />;
+    case "faq":             return <FAQPage />;
+    case "contacto":        return <ContactoPage />;
+    case "politicas":       return <PoliticasPage />;
+    case "pagopar-result":  return <PagoparResultPage />;
+    default:                return <HomePage />;
   }
 }
+
+// Detecta /pagopar/resultado/<hash> en la URL inicial (cuando el browser
+// llega redirigido desde PagoPar) y deja el hash en window.__PAPU_PG_HASH__.
+// La ruta inicial del SPA arranca en "pagopar-result" cuando aplica.
+(function detectInitialPagoparRoute() {
+  const m = (window.location.pathname || "").match(/^\/pagopar\/resultado\/([^/?#]+)/);
+  if (m) {
+    window.__PAPU_PG_HASH__ = decodeURIComponent(m[1]);
+    window.__PAPU_INITIAL_ROUTE__ = "pagopar-result";
+  }
+})();
 
 function ToastHost() {
   const { toast } = useShop();

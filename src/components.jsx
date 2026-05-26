@@ -12,7 +12,10 @@ const useShop = () => useContext(ShopContext);
 function ShopProvider({ children }) {
   const [cart, setCart] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
-  const [route, setRoute] = useState({ name: "home", params: {} });
+  const [route, setRoute] = useState({
+    name: (typeof window !== "undefined" && window.__PAPU_INITIAL_ROUTE__) || "home",
+    params: {},
+  });
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [toast, setToast] = useState({ show: false, message: "" });
