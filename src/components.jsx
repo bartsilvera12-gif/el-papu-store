@@ -9,12 +9,45 @@ const fmt = (n) => "Gs. " + n.toLocaleString("es-PY");
 const ShopContext = createContext(null);
 const useShop = () => useContext(ShopContext);
 
+// Sync entre nombre de ruta interna y la URL del browser
+function routeToPath(name, params) {
+  switch (name) {
+    case "home":           return "/";
+    case "catalogo":       return "/catalogo";
+    case "detalle":        return "/producto/" + encodeURIComponent((params && params.id) || "");
+    case "checkout":       return "/checkout";
+    case "success":        return "/success";
+    case "sobre":          return "/sobre";
+    case "faq":            return "/faq";
+    case "contacto":       return "/contacto";
+    case "politicas":      return "/politicas";
+    case "pagopar-result": return "/pagopar/resultado/" + encodeURIComponent((params && params.hash) || window.__PAPU_PG_HASH__ || "");
+    default:               return "/";
+  }
+}
+
+function pathToRoute(path) {
+  const pg = path.match(/^\/pagopar\/resultado\/([^/?#]+)/);
+  if (pg) {
+    window.__PAPU_PG_HASH__ = decodeURIComponent(pg[1]);
+    return { name: "pagopar-result", params: {} };
+  }
+  const prod = path.match(/^\/producto\/([^/?#]+)/);
+  if (prod) return { name: "detalle", params: { id: decodeURIComponent(prod[1]) } };
+  const simple = {
+    "/": "home", "/catalogo": "catalogo", "/checkout": "checkout",
+    "/success": "success", "/sobre": "sobre", "/faq": "faq",
+    "/contacto": "contacto", "/politicas": "politicas",
+  };
+  return { name: simple[path] || "home", params: {} };
+}
+
 function ShopProvider({ children }) {
   const [cart, setCart] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [route, setRoute] = useState({
     name: (typeof window !== "undefined" && window.__PAPU_INITIAL_ROUTE__) || "home",
-    params: {},
+    params: (typeof window !== "undefined" && window.__PAPU_INITIAL_PARAMS__) || {},
   });
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -34,9 +67,27 @@ function ShopProvider({ children }) {
     return () => window.removeEventListener("papu:data-loaded", onLoaded);
   }, []);
 
+  // Soporte para botón "atrás/adelante" del browser: re-derivar la ruta desde
+  // window.location.pathname cuando cambia la URL externamente.
+  useEffect(() => {
+    const onPopState = () => {
+      setRoute(pathToRoute(window.location.pathname || "/"));
+      window.scrollTo({ top: 0, behavior: "instant" });
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
   const navigate = (name, params = {}) => {
     setRoute({ name, params });
     window.scrollTo({ top: 0, behavior: "instant" });
+    // Mantener la URL del browser sincronizada con la ruta interna del SPA
+    try {
+      const newPath = routeToPath(name, params);
+      if (window.location.pathname !== newPath) {
+        window.history.pushState({ name, params }, "", newPath);
+      }
+    } catch (_) {}
   };
 
   const showToast = (message) => {

@@ -32,15 +32,36 @@ function Router() {
   }
 }
 
-// Detecta /pagopar/resultado/<hash> en la URL inicial (cuando el browser
-// llega redirigido desde PagoPar) y deja el hash en window.__PAPU_PG_HASH__.
-// La ruta inicial del SPA arranca en "pagopar-result" cuando aplica.
-(function detectInitialPagoparRoute() {
-  const m = (window.location.pathname || "").match(/^\/pagopar\/resultado\/([^/?#]+)/);
-  if (m) {
-    window.__PAPU_PG_HASH__ = decodeURIComponent(m[1]);
+// Detecta la ruta inicial del SPA desde window.location.pathname para que el
+// deep-linking funcione (entrar directo a /catalogo, refresh en /sobre, etc.).
+(function detectInitialRoute() {
+  const path = window.location.pathname || "/";
+
+  const pg = path.match(/^\/pagopar\/resultado\/([^/?#]+)/);
+  if (pg) {
+    window.__PAPU_PG_HASH__ = decodeURIComponent(pg[1]);
     window.__PAPU_INITIAL_ROUTE__ = "pagopar-result";
+    return;
   }
+
+  const prod = path.match(/^\/producto\/([^/?#]+)/);
+  if (prod) {
+    window.__PAPU_INITIAL_ROUTE__ = "detalle";
+    window.__PAPU_INITIAL_PARAMS__ = { id: decodeURIComponent(prod[1]) };
+    return;
+  }
+
+  const simple = {
+    "/": "home",
+    "/catalogo": "catalogo",
+    "/checkout": "checkout",
+    "/success": "success",
+    "/sobre": "sobre",
+    "/faq": "faq",
+    "/contacto": "contacto",
+    "/politicas": "politicas",
+  };
+  if (simple[path]) window.__PAPU_INITIAL_ROUTE__ = simple[path];
 })();
 
 function ToastHost() {
