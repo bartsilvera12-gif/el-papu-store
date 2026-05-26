@@ -185,22 +185,23 @@ export function pagoparRouter() {
       // ───── Armar payload PagoPar
       const token = signCreateToken(id_pedido_comercio, total);
 
-      // Detectar tipo de documento: si tiene formato RUC (>= 7 dígitos + guión opcional)
-      // o si trae explícitamente RUC, lo marcamos. Sino, asumimos CI.
+      // Detectar tipo de documento:
+      //  - RUC solo si el usuario lo escribió con guión (ej "12345678-9")
+      //  - todo lo demás → CI (cédula). Es lo más común para comercio retail.
+      const docRaw = String(form.documento || "").trim();
+      const isRuc = /-/.test(docRaw);
+      const tipoDoc = isRuc ? "RUC" : "CI";
       const docDigits = required.documento;
-      const tipoDoc = docDigits.length >= 7 && /^\d{7,8}-?\d?$/.test(String(form.documento || "").trim())
-        ? "RUC" : "CI";
 
       // Nombre completo y razon_social (PagoPar exige ambos)
       const fullName = `${customer_name} ${customer_lastname}`.trim();
 
-      // Dirección con referencia incorporada si el comprador la mandó (PagoPar la pide aparte
-      // igual, pero algunas integraciones requieren que la dirección incluya datos suficientes)
+      // Dirección con referencia incorporada si el comprador la mandó
       const direccionComprador = required.direccion;
       const direccionReferencia = trim(form.referencia) || `Ciudad: ${required.ciudad}`;
 
       const comprador = {
-        ruc: tipoDoc === "RUC" ? docDigits : "",
+        ruc: isRuc ? docDigits : "",
         email: required.email,
         ciudad: "1", // ID de ciudad PagoPar; "1" (Asunción) acepta como default seguro
         nombre: fullName,
@@ -235,13 +236,22 @@ export function pagoparRouter() {
         public_key: publicKey(),
         monto_total: total,
         tipo_pedido: "VENTA-COMERCIO",
+        // PagoPar puede leer tipo_documento a nivel root o dentro de comprador;
+        // mandamos en ambos para evitar el "El tipo documento debe estar presente".
+        tipo_documento: tipoDoc,
         compras_items,
         fecha_maxima_pago: fechaMaximaPago(48),
         id_pedido_comercio,
         descripcion_resumen: `El Papu Store ${order_code} · ${items.length} item(s)`,
       };
 
+      // Log de payload SIN secrets para diagnostico (ocultamos token sha1 y tokens internos)
       console.log("[pagopar/crear] iniciando", { order_code, id_pedido_comercio, total });
+      console.log("[pagopar/crear] payload:", JSON.stringify({
+        ...pgPayload,
+        token: "<redacted>",
+        compras_items: pgPayload.compras_items.map(it => ({ ...it, public_key: "<redacted>" })),
+      }));
 
       let pgRes;
       try {
