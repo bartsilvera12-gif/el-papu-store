@@ -214,6 +214,8 @@ export function pagoparRouter() {
         direccion_referencia: direccionReferencia,
       };
 
+      // PagoPar v2.0 exige EXACTAMENTE 9 campos por item; cualquier extra rompe con
+      // "Jsonb: No coinciden los campos o la cantidad no es 9.".
       const compras_items = items.map(it => ({
         ciudad: "1",
         nombre: it.product_name,
@@ -224,10 +226,6 @@ export function pagoparRouter() {
         descripcion: it.product_name,
         id_producto: it.sku || it.product_id,
         precio_total: it.total,
-        vendedor_telefono: "",
-        vendedor_direccion: "",
-        vendedor_direccion_referencia: "",
-        vendedor_direccion_coordenadas: "",
       }));
 
       const fechaMax = fechaMaximaPago(72);
