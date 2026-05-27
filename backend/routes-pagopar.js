@@ -240,7 +240,7 @@ export function pagoparRouter() {
         // mandamos en ambos para evitar el "El tipo documento debe estar presente".
         tipo_documento: tipoDoc,
         compras_items,
-        fecha_maxima_pago: fechaMaximaPago(48),
+        fecha_maxima_pago: fechaMaximaPago(72),
         id_pedido_comercio,
         descripcion_resumen: `El Papu Store ${order_code} · ${items.length} item(s)`,
       };
