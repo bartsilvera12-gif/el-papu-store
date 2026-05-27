@@ -112,11 +112,24 @@ export async function consultarPedido({ hash_pedido }) {
   return postPagopar("/pedidos/1.1/traer", body);
 }
 
-// Formatear fecha para PagoPar: "dd/MM/yyyy HH:mm:ss"
-export function fechaMaximaPago(hoursFromNow = 48) {
-  const d = new Date(Date.now() + hoursFromNow * 3600 * 1000);
-  const p = n => String(n).padStart(2, "0");
-  return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+// Formatear fecha para PagoPar: "dd/MM/yyyy HH:mm:ss" en horario Paraguay.
+// PagoPar interpreta la fecha en hora local PY (UTC-3, sin horario de verano).
+// Si el VPS está en UTC, mandar `new Date()` directo da una hora "futura" en UTC
+// que al ser parseada en PY puede quedar muy cerca de "now" o incluso pasada.
+export function fechaMaximaPago(hoursFromNow = 72) {
+  const future = new Date(Date.now() + hoursFromNow * 3600 * 1000);
+  const parts = new Intl.DateTimeFormat("es-PY", {
+    timeZone: "America/Asuncion",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(future);
+  const get = type => parts.find(p => p.type === type).value;
+  return `${get("day")}/${get("month")}/${get("year")} ${get("hour")}:${get("minute")}:${get("second")}`;
 }
 
 // Generar id_pedido_comercio único: EPS-YYYYMMDD-HHMMSS-{random4}
