@@ -214,7 +214,9 @@ export function pagoparRouter() {
         direccion_referencia: direccionReferencia,
       };
 
-      // PagoPar v2.0 espera EXACTAMENTE 9 campos por item: nada extra.
+      // PagoPar v2.0: 9 campos producto + 4 campos vendedor_* (pueden ir vacíos
+      // pero la key DEBE existir). Sin ellos PagoPar responde:
+      //   "Faltan campos en el json compras items.vendedor_direccion".
       const compras_items = items.map(it => ({
         ciudad: "1",
         nombre: it.product_name,
@@ -225,6 +227,10 @@ export function pagoparRouter() {
         descripcion: it.product_name,
         id_producto: it.sku || it.product_id,
         precio_total: it.total,
+        vendedor_telefono: "",
+        vendedor_direccion: "",
+        vendedor_direccion_referencia: "",
+        vendedor_direccion_coordenadas: "",
       }));
 
       const fechaMax = fechaMaximaPago(72);
