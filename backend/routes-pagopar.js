@@ -214,9 +214,7 @@ export function pagoparRouter() {
         direccion_referencia: direccionReferencia,
       };
 
-      // PagoPar v2.0 requiere los 9 campos "base" del producto + 4 campos
-      // del vendedor (vendedor_telefono, vendedor_direccion, vendedor_direccion_referencia,
-      // vendedor_direccion_coordenadas). Los 4 pueden ir vacíos pero deben existir.
+      // PagoPar v2.0 espera EXACTAMENTE 9 campos por item: nada extra.
       const compras_items = items.map(it => ({
         ciudad: "1",
         nombre: it.product_name,
@@ -227,24 +225,18 @@ export function pagoparRouter() {
         descripcion: it.product_name,
         id_producto: it.sku || it.product_id,
         precio_total: it.total,
-        vendedor_telefono: "",
-        vendedor_direccion: "",
-        vendedor_direccion_referencia: "",
-        vendedor_direccion_coordenadas: "",
       }));
 
       const fechaMax = fechaMaximaPago(72);
       console.log("[pagopar/crear] fecha_maxima_pago:", fechaMax);
 
+      // Payload raíz minimal: tipo_documento va SOLO dentro de comprador.
       const pgPayload = {
         token,
         comprador,
         public_key: publicKey(),
         monto_total: total,
         tipo_pedido: "VENTA-COMERCIO",
-        // PagoPar puede leer tipo_documento a nivel root o dentro de comprador;
-        // mandamos en ambos para evitar el "El tipo documento debe estar presente".
-        tipo_documento: tipoDoc,
         compras_items,
         fecha_maxima_pago: fechaMax,
         id_pedido_comercio,
