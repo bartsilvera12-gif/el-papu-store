@@ -112,13 +112,19 @@ export async function consultarPedido({ hash_pedido }) {
   return postPagopar("/pedidos/1.1/traer", body);
 }
 
-// Formatear fecha para PagoPar: "dd/MM/yyyy HH:mm:ss" en horario Paraguay.
-// PagoPar interpreta la fecha en hora local PY (UTC-3, sin horario de verano).
-// Si el VPS está en UTC, mandar `new Date()` directo da una hora "futura" en UTC
-// que al ser parseada en PY puede quedar muy cerca de "now" o incluso pasada.
+// Formatear fecha para PagoPar: "YYYY-MM-DD HH:mm:ss" en hora Paraguay.
+//
+// PagoPar parsea fecha_maxima_pago con un parser estilo ISO. Si le mandamos
+// "30/05/2026 09:09:03" (DD/MM/YYYY), lo interpreta como año=2026 mes=30 →
+// fecha inválida que cae en el pasado → responde:
+//   "Fecha de vencimiento debe ser posterior a la fecha actual."
+//
+// Locale "sv-SE" (sueco) naturalmente devuelve YYYY-MM-DD HH:mm:ss.
+// Mantenemos TZ America/Asuncion porque PagoPar opera en hora PY (UTC-3).
 export function fechaMaximaPago(hoursFromNow = 72) {
   const future = new Date(Date.now() + hoursFromNow * 3600 * 1000);
-  const parts = new Intl.DateTimeFormat("es-PY", {
+  // "sv-SE" + opciones explícitas devuelve "YYYY-MM-DD HH:mm:ss"
+  const formatted = new Intl.DateTimeFormat("sv-SE", {
     timeZone: "America/Asuncion",
     year: "numeric",
     month: "2-digit",
@@ -127,9 +133,10 @@ export function fechaMaximaPago(hoursFromNow = 72) {
     minute: "2-digit",
     second: "2-digit",
     hour12: false,
-  }).formatToParts(future);
-  const get = type => parts.find(p => p.type === type).value;
-  return `${get("day")}/${get("month")}/${get("year")} ${get("hour")}:${get("minute")}:${get("second")}`;
+  }).format(future);
+  // Intl.DateTimeFormat puede devolver "YYYY-MM-DD HH:mm:ss" o "YYYY-MM-DD, HH:mm:ss"
+  // según engine. Normalizamos sacando posible coma.
+  return formatted.replace(",", "").replace(/\s+/g, " ").trim();
 }
 
 // Generar id_pedido_comercio único: EPS-YYYYMMDD-HHMMSS-{random4}
