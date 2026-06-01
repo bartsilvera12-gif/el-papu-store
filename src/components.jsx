@@ -665,13 +665,13 @@ function Footer() {
     <footer id="site-footer" className="bg-[#050505] border-t border-[#1FE620]/15 relative overflow-hidden">
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#1FE620] to-transparent opacity-50"></div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14 sm:py-20">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-10 justify-items-center text-center">
           <div>
             <Logo size="md" onClick={() => navigate("home")} />
             <p className="text-white/50 text-sm mt-4 leading-relaxed">
               El Papu Store — productos urbanos, virales y compra rápida.
             </p>
-            <div className="flex gap-2 mt-5">
+            <div className="flex justify-center gap-2 mt-5">
               {[
                 ["whatsapp", (window.__PAPU_CONTACT__ || {}).whatsappUrl || "#"],
                 ["instagram", (window.__PAPU_CONTACT__ || {}).instagramUrl || "#"],
@@ -703,19 +703,6 @@ function Footer() {
                 <li key={c.id}><button onClick={() => goCategory(c)} className="text-white/60 hover:text-[#1FE620]">{c.nombre}</button></li>
               ))}
             </ul>
-          </div>
-
-          <div>
-            <div className="text-[#1FE620] uppercase text-xs font-bold tracking-[0.3em] mb-4">Ayuda</div>
-            <ul className="space-y-2.5 text-sm">
-              <li><button onClick={() => navigate("faq")} className="text-white/60 hover:text-[#1FE620]">Preguntas frecuentes</button></li>
-              <li><button onClick={() => navigate("politicas")} className="text-white/60 hover:text-[#1FE620]">Políticas</button></li>
-              <li><button onClick={() => document.getElementById("site-footer")?.scrollIntoView({ behavior: "smooth", block: "start" })} className="text-white/60 hover:text-[#1FE620]">Contacto</button></li>
-              <li><a href={(window.__PAPU_CONTACT__ || {}).whatsappUrl || "#"} target="_blank" rel="noopener noreferrer" className="text-white/60 hover:text-[#1FE620]">WhatsApp</a></li>
-            </ul>
-            <div className="mt-5 text-xs text-white/40">
-              Lun a Sáb · 10 a 20hs<br />Atención por WhatsApp 24/7
-            </div>
           </div>
         </div>
 
