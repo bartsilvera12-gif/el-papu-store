@@ -48,7 +48,7 @@ function usePapuData() {
     window.addEventListener("papu:data-loaded", handler);
     return () => window.removeEventListener("papu:data-loaded", handler);
   }, []);
-  return window.__PAPU_DATA__ || { PRODUCTS: [], CATEGORIAS: [], FAQS: [] };
+  return window.__PAPU_DATA__ || { PRODUCTS: [], CATEGORIAS: [], FAQS: [], CONTENT: {} };
 }
 
 Object.assign(window, {

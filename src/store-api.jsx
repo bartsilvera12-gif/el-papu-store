@@ -55,10 +55,13 @@ const PapuStoreAPI = (function () {
     if (!client) return { loaded: false, reason: "supabase-not-configured" };
 
     try {
-      const [catsRes, prodsRes, faqsRes] = await Promise.all([
+      // site_content es opcional: si la tabla no existe todavía (migración sin
+      // correr), su error NO debe romper la carga de productos/categorías/faqs.
+      const [catsRes, prodsRes, faqsRes, contentRes] = await Promise.all([
         client.from("categories").select("*").eq("is_active", true).order("display_order", { ascending: true }),
         client.from("products").select("*").eq("is_active", true).order("display_order", { ascending: true }),
         client.from("faqs").select("*").eq("is_active", true).order("display_order", { ascending: true }),
+        client.from("site_content").select("key, value"),
       ]);
 
       if (catsRes.error) throw catsRes.error;
@@ -70,13 +73,21 @@ const PapuStoreAPI = (function () {
       const prods = (prodsRes.data || []).map(r => mapProductRow(r, catsById));
       const faqs = (faqsRes.data || []).map(mapFaqRow);
 
-      const D = window.__PAPU_DATA__ = window.__PAPU_DATA__ || { PRODUCTS: [], CATEGORIAS: [], FAQS: [] };
+      const content = {};
+      if (contentRes.error) {
+        console.warn("[papu] site_content no disponible (¿migración sin correr?):", contentRes.error.message || contentRes.error);
+      } else {
+        (contentRes.data || []).forEach(r => { content[r.key] = r.value || {}; });
+      }
+
+      const D = window.__PAPU_DATA__ = window.__PAPU_DATA__ || { PRODUCTS: [], CATEGORIAS: [], FAQS: [], CONTENT: {} };
 
       // Mutar in-place para que componentes que tienen referencia al array
       // sigan funcionando.
       if (prods.length) D.PRODUCTS.splice(0, D.PRODUCTS.length, ...prods);
       if (cats.length) D.CATEGORIAS.splice(0, D.CATEGORIAS.length, ...cats);
       if (faqs.length) D.FAQS.splice(0, D.FAQS.length, ...faqs);
+      D.CONTENT = Object.assign(D.CONTENT || {}, content);
 
       window.dispatchEvent(new Event("papu:data-loaded"));
       return { loaded: true, products: prods.length, categories: cats.length, faqs: faqs.length };

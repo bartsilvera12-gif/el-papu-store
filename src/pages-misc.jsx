@@ -328,6 +328,12 @@ function SuccessPage() {
 // ----------------------- Sobre -----------------------
 
 function SobrePage() {
+  const data = usePapuData();
+  const about = (data && data.CONTENT && data.CONTENT.about) || {};
+  const title = about.title || "La store con";
+  const highlight = about.highlight != null ? about.highlight : "más estilo";
+  const description = about.description || "El Papu Store nace para ofrecer productos urbanos seleccionados, virales y de utilidad real. Buscamos que cada compra sea rápida, simple y con una experiencia visual diferente. Acá encontrás productos seleccionados, ofertas y novedades pensadas para clientes que quieren comprar fácil y con estilo.";
+
   const blocks = [
     { i: "sparkles", t: "Nuestra identidad", d: "Curamos productos que nos parecen buenos. Sin vueltas." },
     { i: "bolt", t: "Compra fácil", d: "Pocos clicks, atención directa, plata bien gastada." },
@@ -342,10 +348,11 @@ function SobrePage() {
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6">
           <div className="text-[#1FE620] text-[11px] uppercase tracking-[0.3em] font-bold mb-2">Sobre nosotros</div>
           <h1 className="font-display text-6xl sm:text-8xl text-white leading-[0.85] mb-6">
-            La store con <span className="italic text-white drop-shadow-[0_0_20px_rgba(31,230,32,0.5)]" style={{ WebkitTextStroke: "2px #1FE620" }}>más estilo</span>.
+            {title}
+            {highlight ? <> <span className="italic text-white drop-shadow-[0_0_20px_rgba(31,230,32,0.5)]" style={{ WebkitTextStroke: "2px #1FE620" }}>{highlight}</span></> : null}.
           </h1>
-          <p className="text-white/70 text-xl leading-relaxed max-w-3xl">
-            El Papu Store nace para ofrecer productos urbanos seleccionados, virales y de utilidad real. Buscamos que cada compra sea rápida, simple y con una experiencia visual diferente. Acá encontrás productos seleccionados, ofertas y novedades pensadas para clientes que quieren comprar fácil y con estilo.
+          <p className="text-white/70 text-xl leading-relaxed max-w-3xl whitespace-pre-line">
+            {description}
           </p>
         </div>
       </section>

@@ -14,4 +14,8 @@ const CATEGORIAS = [];
 
 const FAQS = [];
 
-window.__PAPU_DATA__ = { PRODUCTS, CATEGORIAS, FAQS };
+// CONTENT: textos editables desde el admin (clave -> objeto). Se llena desde
+// site_content en loadInitialData(). Vacío = los componentes usan su fallback.
+const CONTENT = {};
+
+window.__PAPU_DATA__ = { PRODUCTS, CATEGORIAS, FAQS, CONTENT };

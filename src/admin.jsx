@@ -22,6 +22,7 @@ var AdminApp = (function () {
     if (p === "/admin/categorias") return "categorias";
     if (p === "/admin/pedidos") return "pedidos";
     if (p === "/admin/faqs") return "faqs";
+    if (p === "/admin/contenido") return "contenido";
     return "dashboard";
   }
   function pushAdmin(path) {
@@ -391,6 +392,7 @@ var AdminApp = (function () {
       { id: "categorias", label: "Categorías", path: "/admin/categorias", icon: "🏷️" },
       { id: "pedidos", label: "Pedidos", path: "/admin/pedidos", icon: "🛒" },
       { id: "faqs", label: "FAQs", path: "/admin/faqs", icon: "❓" },
+      { id: "contenido", label: "Contenido", path: "/admin/contenido", icon: "📝" },
     ];
     return (
       <div className="min-h-screen bg-[#050505] text-white flex">
@@ -1987,6 +1989,104 @@ var AdminApp = (function () {
     );
   }
 
+  // ---------- Contenido (textos editables del sitio) ----------
+
+  var ABOUT_DEFAULTS = {
+    title: "La store con",
+    highlight: "más estilo",
+    description: "El Papu Store nace para ofrecer productos urbanos seleccionados, virales y de utilidad real. Buscamos que cada compra sea rápida, simple y con una experiencia visual diferente. Acá encontrás productos seleccionados, ofertas y novedades pensadas para clientes que quieren comprar fácil y con estilo.",
+  };
+
+  function Contenido() {
+    var ctx = useAdmin();
+    var client = ctx.client;
+
+    var loadingState = useState(true);
+    var loading = loadingState[0];
+    var setLoading = loadingState[1];
+    var savingState = useState(false);
+    var saving = savingState[0];
+    var setSaving = savingState[1];
+    var savedState = useState(false);
+    var saved = savedState[0];
+    var setSaved = savedState[1];
+    var fState = useState({ title: "", highlight: "", description: "" });
+    var f = fState[0];
+    var setF = fState[1];
+
+    function set(k, v) { var o = {}; o[k] = v; setF(Object.assign({}, f, o)); setSaved(false); }
+
+    function load() {
+      setLoading(true);
+      return client.from("site_content").select("value").eq("key", "about").maybeSingle().then(function (res) {
+        var v = (res.data && res.data.value) || {};
+        setF({
+          title: v.title != null ? v.title : ABOUT_DEFAULTS.title,
+          highlight: v.highlight != null ? v.highlight : ABOUT_DEFAULTS.highlight,
+          description: v.description != null ? v.description : ABOUT_DEFAULTS.description,
+        });
+        setLoading(false);
+      });
+    }
+    useEffect(function () { load(); }, [client]);
+
+    function save() {
+      setSaving(true);
+      setSaved(false);
+      client.from("site_content").upsert({
+        key: "about",
+        value: { title: f.title, highlight: f.highlight, description: f.description },
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "key" }).then(function (res) {
+        setSaving(false);
+        if (res.error) { alert(res.error.message); return; }
+        setSaved(true);
+      });
+    }
+
+    function reset() { setF(Object.assign({}, ABOUT_DEFAULTS)); setSaved(false); }
+
+    return (
+      <React.Fragment>
+        <PageHeader title="Contenido" subtitle="Textos editables de la página «Sobre nosotros»" />
+        <Content>
+          {loading ? (
+            <div className="bg-[#0a0a0a] border border-white/5 rounded-xl p-10 text-center text-white/40 text-sm uppercase tracking-[0.3em]">Cargando...</div>
+          ) : (
+            <div className="max-w-2xl space-y-6">
+              <div className="bg-[#0a0a0a] border border-white/5 rounded-xl p-5 sm:p-6 space-y-4">
+                <Field label="Título" hint="Texto principal del encabezado (en blanco).">
+                  <TextInput value={f.title} onChange={function (v) { set("title", v); }} placeholder={ABOUT_DEFAULTS.title} />
+                </Field>
+                <Field label="Frase destacada" hint="Se muestra en verde, justo después del título. Dejala vacía para no mostrarla.">
+                  <TextInput value={f.highlight} onChange={function (v) { set("highlight", v); }} placeholder={ABOUT_DEFAULTS.highlight} />
+                </Field>
+                <Field label="Descripción" hint="Párrafo debajo del título. Los saltos de línea se respetan.">
+                  <TextArea rows={6} value={f.description} onChange={function (v) { set("description", v); }} placeholder={ABOUT_DEFAULTS.description} />
+                </Field>
+              </div>
+
+              <div className="bg-[#0a0a0a] border border-white/5 rounded-xl p-5 sm:p-6">
+                <div className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold mb-3">Vista previa</div>
+                <h2 className="font-display text-4xl sm:text-5xl text-white leading-[0.9]">
+                  {f.title || ABOUT_DEFAULTS.title}
+                  {f.highlight ? <React.Fragment> <span className="italic text-[#1FE620]" style={{ WebkitTextStroke: "1px #1FE620" }}>{f.highlight}</span></React.Fragment> : null}.
+                </h2>
+                <p className="text-white/60 text-sm leading-relaxed mt-4 whitespace-pre-line">{f.description || ABOUT_DEFAULTS.description}</p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Btn onClick={save} disabled={saving}>{saving ? "Guardando..." : "Guardar cambios"}</Btn>
+                <Btn variant="ghost" onClick={reset} disabled={saving}>Restaurar texto original</Btn>
+                {saved ? <span className="text-[#1FE620] text-xs font-bold uppercase tracking-wider">✓ Guardado</span> : null}
+              </div>
+            </div>
+          )}
+        </Content>
+      </React.Fragment>
+    );
+  }
+
   // ---------- Root ----------
 
   function Root() {
@@ -2033,6 +2133,7 @@ var AdminApp = (function () {
     else if (route === "categorias") Page = Categorias;
     else if (route === "pedidos") Page = Pedidos;
     else if (route === "faqs") Page = Faqs;
+    else if (route === "contenido") Page = Contenido;
 
     return <Layout><Page /></Layout>;
   }
