@@ -400,6 +400,7 @@ function Icon({ name, className = "w-5 h-5" }) {
     headphones: <><path d="M3 18v-6a9 9 0 0 1 18 0v6" /><rect x="3" y="14" width="4" height="7" rx="1" /><rect x="17" y="14" width="4" height="7" rx="1" /></>,
     gamepad: <><rect x="2" y="7" width="20" height="10" rx="3" /><circle cx="16" cy="12" r="1.2" fill="currentColor" /><circle cx="19" cy="14" r="1.2" fill="currentColor" /><path d="M6 12h4M8 10v4" /></>,
     home: <><path d="M3 11 12 4l9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" /></>,
+    copy: <><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></>,
   };
   return <svg {...props}>{paths[name]}</svg>;
 }

@@ -550,7 +550,37 @@ function PagoparResultPage() {
   const [loading, setLoading] = useStateMisc(true);
   const [data, setData] = useStateMisc(null);
   const [errorMsg, setErrorMsg] = useStateMisc("");
+  const [copied, setCopied] = useStateMisc(false);
   const cartClearedRef = React.useRef(false);
+  const copyTimerRef = React.useRef(null);
+
+  const copyOrderId = React.useCallback(async (code) => {
+    if (!code) return;
+    let ok = false;
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(code);
+        ok = true;
+      } catch (_) { /* cae al fallback con execCommand */ }
+    }
+    if (!ok) {
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = code;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+      } catch (_) {}
+    }
+    if (ok) {
+      setCopied(true);
+      clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = setTimeout(() => setCopied(false), 2000);
+    }
+  }, []);
 
   const consultar = React.useCallback(async () => {
     if (!hash) { setErrorMsg("Falta el hash del pago."); setLoading(false); return; }
@@ -653,38 +683,56 @@ function PagoparResultPage() {
               </>
             )}
 
-            <div className="bg-[#0a0a0a] border border-[#1FE620]/20 rounded-xl p-5 text-left text-sm space-y-2 mb-6">
-              {(data.order_code || last.order_code) && (
-                <div className="flex justify-between text-white/60">
-                  <span>Pedido</span>
-                  <span className="text-white font-mono">{data.order_code || last.order_code}</span>
+            {(data.order_code || last.order_code) && (
+              <div className="bg-[#1FE620]/[0.06] border border-[#1FE620]/30 rounded-2xl p-5 mb-6">
+                <div className="text-white/50 text-[11px] uppercase tracking-[0.25em] mb-3">Tu número de pedido</div>
+                <div className="flex items-center justify-center gap-3 flex-wrap">
+                  <span className="font-mono text-2xl sm:text-3xl text-[#1FE620] font-bold tracking-wider drop-shadow-[0_0_10px_rgba(31,230,32,0.4)]">
+                    {data.order_code || last.order_code}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => copyOrderId(data.order_code || last.order_code)}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition
+                      ${copied
+                        ? "border-[#1FE620] text-[#1FE620] bg-[#1FE620]/10"
+                        : "border-white/20 text-white/80 hover:border-[#1FE620]/50 hover:text-white"}`}>
+                    <Icon name={copied ? "check" : "copy"} className="w-4 h-4" />
+                    {copied ? "¡Copiado!" : "Copiar"}
+                  </button>
                 </div>
-              )}
-              {data.numero_pedido && (
-                <div className="flex justify-between text-white/60">
-                  <span>N° PagoPar</span>
-                  <span className="text-white font-mono">{data.numero_pedido}</span>
-                </div>
-              )}
-              {data.forma_pago && (
-                <div className="flex justify-between text-white/60">
-                  <span>Forma de pago</span>
-                  <span className="text-white">{data.forma_pago}</span>
-                </div>
-              )}
-              {data.monto != null && (
-                <div className="flex justify-between text-white/60">
-                  <span>Monto</span>
-                  <span className="text-white">Gs. {Number(data.monto).toLocaleString("es-PY")}</span>
-                </div>
-              )}
-              {data.fecha_pago && (
-                <div className="flex justify-between text-white/60">
-                  <span>Fecha pago</span>
-                  <span className="text-white">{data.fecha_pago}</span>
-                </div>
-              )}
-            </div>
+                <div className="text-white/40 text-xs mt-3">Guardá este número para cualquier consulta o reclamo.</div>
+              </div>
+            )}
+
+            {(data.numero_pedido || data.forma_pago || data.monto != null || data.fecha_pago) && (
+              <div className="bg-[#0a0a0a] border border-[#1FE620]/20 rounded-xl p-5 text-left text-sm space-y-2 mb-6">
+                {data.numero_pedido && (
+                  <div className="flex justify-between text-white/60">
+                    <span>N° PagoPar</span>
+                    <span className="text-white font-mono">{data.numero_pedido}</span>
+                  </div>
+                )}
+                {data.forma_pago && (
+                  <div className="flex justify-between text-white/60">
+                    <span>Forma de pago</span>
+                    <span className="text-white">{data.forma_pago}</span>
+                  </div>
+                )}
+                {data.monto != null && (
+                  <div className="flex justify-between text-white/60">
+                    <span>Monto</span>
+                    <span className="text-white">Gs. {Number(data.monto).toLocaleString("es-PY")}</span>
+                  </div>
+                )}
+                {data.fecha_pago && (
+                  <div className="flex justify-between text-white/60">
+                    <span>Fecha pago</span>
+                    <span className="text-white">{data.fecha_pago}</span>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               {data.estado === "pending" && <GlowButton onClick={consultar}>Volver a consultar</GlowButton>}
