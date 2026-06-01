@@ -1768,7 +1768,8 @@ var AdminApp = (function () {
               <div className="flex flex-wrap gap-1.5">
                 {["pending", "confirmed", "shipped", "delivered", "cancelled"].map(function (s) {
                   var btnCls = "px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider border " + (order.status === s ? "bg-[#1FE620] text-black border-[#1FE620]" : "text-white/60 bg-white/5 border-white/10 hover:border-white/30");
-                  return <button key={s} onClick={function () { props.onStatus(s); }} className={btnCls}>{s}</button>;
+                  var label = (STATUS_META[s] && STATUS_META[s].label) || s;
+                  return <button key={s} onClick={function () { props.onStatus(s); }} className={btnCls}>{label}</button>;
                 })}
               </div>
             </div>
