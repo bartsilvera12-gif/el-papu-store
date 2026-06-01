@@ -655,6 +655,13 @@ function SearchOverlay() {
 
 function Footer() {
   const { navigate } = useShop();
+  const data = usePapuData();
+  const CATEGORIAS = (data && data.CATEGORIAS) || [];
+  const goCategory = (c) => {
+    if (c.id === "tendencias") navigate("catalogo", { filter: "viral" });
+    else if (c.id === "top") navigate("catalogo", { filter: "top" });
+    else navigate("catalogo", { categoria: c.nombre });
+  };
   return (
     <footer id="site-footer" className="bg-[#050505] border-t border-[#1FE620]/15 relative overflow-hidden">
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#1FE620] to-transparent opacity-50"></div>
@@ -677,7 +684,7 @@ function Footer() {
           <div>
             <div className="text-[#1FE620] uppercase text-xs font-bold tracking-[0.3em] mb-4">Tienda</div>
             <ul className="space-y-2.5 text-sm">
-              {[["home","Inicio"],["catalogo","Catálogo"],["catalogo","Virales"],["catalogo","Ofertas"],["sobre","Sobre nosotros"],["contacto","Contacto"]].map(([r,l],i) => (
+              {[["home","Inicio"],["catalogo","Catálogo"],["sobre","Sobre nosotros"],["contacto","Contacto"]].map(([r,l],i) => (
                 <li key={i}><button onClick={() => {
                   if (r === "contacto") {
                     document.getElementById("site-footer")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -690,8 +697,8 @@ function Footer() {
           <div>
             <div className="text-[#1FE620] uppercase text-xs font-bold tracking-[0.3em] mb-4">Categorías</div>
             <ul className="space-y-2.5 text-sm">
-              {["Tecnología","Gaming","Accesorios","Moda","Tendencias","Hogar"].map(c => (
-                <li key={c}><button onClick={() => navigate("catalogo")} className="text-white/60 hover:text-[#1FE620]">{c}</button></li>
+              {CATEGORIAS.map(c => (
+                <li key={c.id}><button onClick={() => goCategory(c)} className="text-white/60 hover:text-[#1FE620]">{c.nombre}</button></li>
               ))}
             </ul>
           </div>
