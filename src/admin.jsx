@@ -391,7 +391,6 @@ var AdminApp = (function () {
       { id: "productos", label: "Productos", path: "/admin/productos", icon: "📦" },
       { id: "categorias", label: "Categorías", path: "/admin/categorias", icon: "🏷️" },
       { id: "pedidos", label: "Pedidos", path: "/admin/pedidos", icon: "🛒" },
-      { id: "faqs", label: "FAQs", path: "/admin/faqs", icon: "❓" },
       { id: "contenido", label: "Contenido", path: "/admin/contenido", icon: "📝" },
     ];
     return (
