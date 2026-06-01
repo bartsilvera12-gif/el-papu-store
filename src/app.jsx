@@ -80,7 +80,7 @@ function PublicApp() {
         <SearchOverlay />
         <ToastHost />
         {/* Floating WA */}
-        <a href="#" className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-white text-black flex items-center justify-center ring-2 ring-[#1FE620] shadow-[0_0_30px_rgba(31,230,32,0.5)] hover:scale-105 hover:shadow-[0_0_40px_rgba(31,230,32,0.75)] transition-all animate-float">
+        <a href={(window.__PAPU_CONTACT__ || {}).whatsappUrl || "#"} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-white text-black flex items-center justify-center ring-2 ring-[#1FE620] shadow-[0_0_30px_rgba(31,230,32,0.5)] hover:scale-105 hover:shadow-[0_0_40px_rgba(31,230,32,0.75)] transition-all animate-float">
           <Icon name="whatsapp" className="w-7 h-7" />
         </a>
       </div>

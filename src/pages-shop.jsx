@@ -312,7 +312,11 @@ function DetallePage() {
               <GlowButton variant="outline" onClick={handleBuy} className="flex-1 min-w-[180px]">
                 <Icon name="bolt" className="w-4 h-4" /> Comprar ahora
               </GlowButton>
-              <GlowButton variant="dark" className="flex-1 min-w-[180px]">
+              <GlowButton variant="dark" className="flex-1 min-w-[180px]" onClick={() => {
+                var url = (window.__PAPU_CONTACT__ || {}).whatsappUrl || "#";
+                if (url !== "#") url += "?text=" + encodeURIComponent("Hola! Me interesa: " + (product.nombre || ""));
+                window.open(url, "_blank");
+              }}>
                 <Icon name="whatsapp" className="w-4 h-4" /> Por WhatsApp
               </GlowButton>
             </div>

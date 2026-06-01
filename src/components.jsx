@@ -352,7 +352,7 @@ function Navbar() {
               className="mt-3 bg-white text-black px-4 py-4 rounded-md font-bold uppercase tracking-wider ring-1 ring-[#1FE620]/50 shadow-[0_0_20px_rgba(31,230,32,0.35)]">
               Comprar ahora →
             </button>
-            <a href="#whatsapp" className="mt-2 flex items-center justify-center gap-2 border border-[#1FE620]/40 text-[#1FE620] px-4 py-4 rounded-md font-bold uppercase tracking-wider">
+            <a href={(window.__PAPU_CONTACT__ || {}).whatsappUrl || "#"} target="_blank" rel="noopener noreferrer" className="mt-2 flex items-center justify-center gap-2 border border-[#1FE620]/40 text-[#1FE620] px-4 py-4 rounded-md font-bold uppercase tracking-wider">
               <Icon name="whatsapp" className="w-4 h-4" /> WhatsApp
             </a>
           </nav>
@@ -385,7 +385,6 @@ function Icon({ name, className = "w-5 h-5" }) {
     heart: <><path d="M12 21s-7-4.5-9.5-9C.9 8.7 2.6 5 6 5c2 0 3.4 1.1 4.3 2.5C11.3 6.1 12.7 5 14.7 5c3.4 0 5.1 3.7 3.5 7-2.5 4.5-9.5 9-9.5 9z" /></>,
     whatsapp: <><path d="M20.5 12a8.5 8.5 0 1 0-15.4 5L4 21l4.1-1.1A8.5 8.5 0 0 0 20.5 12z" /><path d="M8.5 9.5c0-.6.4-1 1-1h.6c.3 0 .6.2.7.5l.7 1.7c.1.3 0 .6-.2.8l-.6.5c.5 1 1.3 1.8 2.3 2.3l.5-.6c.2-.2.5-.3.8-.2l1.7.7c.3.1.5.4.5.7v.6c0 .6-.4 1-1 1A6.7 6.7 0 0 1 8.5 9.5z" /></>,
     instagram: <><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" /></>,
-    facebook: <><path d="M14 8h3V5h-3a4 4 0 0 0-4 4v2H7v3h3v7h3v-7h3l1-3h-4V9a1 1 0 0 1 1-1z" /></>,
     truck: <><rect x="2" y="7" width="13" height="10" rx="1" /><path d="M15 10h4l3 3v4h-7" /><circle cx="6" cy="19" r="2" /><circle cx="18" cy="19" r="2" /></>,
     shield: <><path d="M12 3 5 6v6c0 4 3 7 7 9 4-2 7-5 7-9V6l-7-3z" /><path d="m9 12 2 2 4-4" /></>,
     bolt: <><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z" /></>,
@@ -673,8 +672,11 @@ function Footer() {
               El Papu Store — productos urbanos, virales y compra rápida.
             </p>
             <div className="flex gap-2 mt-5">
-              {["whatsapp","instagram","facebook"].map(n => (
-                <a key={n} href="#" className="w-10 h-10 rounded-md border border-white/10 hover:border-[#1FE620] hover:text-[#1FE620] text-white/70 flex items-center justify-center transition-all hover:shadow-[0_0_12px_rgba(31,230,32,0.3)]">
+              {[
+                ["whatsapp", (window.__PAPU_CONTACT__ || {}).whatsappUrl || "#"],
+                ["instagram", (window.__PAPU_CONTACT__ || {}).instagramUrl || "#"],
+              ].map(([n, url]) => (
+                <a key={n} href={url} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-md border border-white/10 hover:border-[#1FE620] hover:text-[#1FE620] text-white/70 flex items-center justify-center transition-all hover:shadow-[0_0_12px_rgba(31,230,32,0.3)]">
                   <Icon name={n} />
                 </a>
               ))}
@@ -709,7 +711,7 @@ function Footer() {
               <li><button onClick={() => navigate("faq")} className="text-white/60 hover:text-[#1FE620]">Preguntas frecuentes</button></li>
               <li><button onClick={() => navigate("politicas")} className="text-white/60 hover:text-[#1FE620]">Políticas</button></li>
               <li><button onClick={() => document.getElementById("site-footer")?.scrollIntoView({ behavior: "smooth", block: "start" })} className="text-white/60 hover:text-[#1FE620]">Contacto</button></li>
-              <li><a href="#" className="text-white/60 hover:text-[#1FE620]">WhatsApp</a></li>
+              <li><a href={(window.__PAPU_CONTACT__ || {}).whatsappUrl || "#"} target="_blank" rel="noopener noreferrer" className="text-white/60 hover:text-[#1FE620]">WhatsApp</a></li>
             </ul>
             <div className="mt-5 text-xs text-white/40">
               Lun a Sáb · 10 a 20hs<br />Atención por WhatsApp 24/7

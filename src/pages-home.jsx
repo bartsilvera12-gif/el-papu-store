@@ -47,7 +47,7 @@ function Hero() {
               <GlowButton variant="primary" onClick={() => navigate("catalogo")} className="text-base">
                 Ver catálogo <Icon name="arrow-right" className="w-4 h-4" />
               </GlowButton>
-              <GlowButton variant="outline" className="text-base">
+              <GlowButton variant="outline" className="text-base" onClick={() => window.open((window.__PAPU_CONTACT__ || {}).whatsappUrl || "#", "_blank")}>
                 <Icon name="whatsapp" className="w-4 h-4" /> Comprar por WhatsApp
               </GlowButton>
             </div>
@@ -401,7 +401,7 @@ function CTAFinal() {
           <GlowButton onClick={() => navigate("catalogo")} className="text-base">
             Entrar al catálogo <Icon name="arrow-right" className="w-4 h-4" />
           </GlowButton>
-          <GlowButton variant="outline" className="text-base">
+          <GlowButton variant="outline" className="text-base" onClick={() => window.open((window.__PAPU_CONTACT__ || {}).whatsappUrl || "#", "_blank")}>
             <Icon name="whatsapp" className="w-4 h-4" /> Consultar por WhatsApp
           </GlowButton>
         </div>

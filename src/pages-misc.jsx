@@ -318,7 +318,7 @@ function SuccessPage() {
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <GlowButton onClick={() => navigate("home")}>Volver al inicio</GlowButton>
           <GlowButton variant="outline" onClick={() => navigate("catalogo")}>Seguir comprando</GlowButton>
-          <GlowButton variant="dark"><Icon name="whatsapp" className="w-4 h-4" /> WhatsApp</GlowButton>
+          <GlowButton variant="dark" onClick={() => window.open((window.__PAPU_CONTACT__ || {}).whatsappUrl || "#", "_blank")}><Icon name="whatsapp" className="w-4 h-4" /> WhatsApp</GlowButton>
         </div>
       </div>
     </main>
@@ -413,7 +413,7 @@ function FAQPage() {
         <div className="mt-10 bg-gradient-to-br from-[#0B3D13]/40 to-[#0a0a0a] border border-[#1FE620]/30 rounded-xl p-6 text-center">
           <div className="font-display text-2xl text-white mb-2">¿Otra duda, papu?</div>
           <p className="text-white/60 text-sm mb-4">Escribinos por WhatsApp y te contestamos rápido.</p>
-          <GlowButton><Icon name="whatsapp" className="w-4 h-4" /> Escribir por WhatsApp</GlowButton>
+          <GlowButton onClick={() => window.open((window.__PAPU_CONTACT__ || {}).whatsappUrl || "#", "_blank")}><Icon name="whatsapp" className="w-4 h-4" /> Escribir por WhatsApp</GlowButton>
         </div>
       </section>
     </main>
@@ -439,7 +439,7 @@ function ContactoPage() {
 
       <section className="max-w-5xl mx-auto px-4 sm:px-6 py-12 grid lg:grid-cols-[1fr_360px] gap-6">
         <div className="bg-[#0a0a0a] border border-white/5 rounded-xl p-6 sm:p-8">
-          <a href="#" className="block bg-white text-black rounded-xl p-5 mb-6 flex items-center justify-between ring-1 ring-[#1FE620]/50 shadow-[0_0_18px_rgba(31,230,32,0.25)] hover:ring-[#1FE620] hover:shadow-[0_0_30px_rgba(31,230,32,0.5)] transition">
+          <a href={(window.__PAPU_CONTACT__ || {}).whatsappUrl || "#"} target="_blank" rel="noopener noreferrer" className="block bg-white text-black rounded-xl p-5 mb-6 flex items-center justify-between ring-1 ring-[#1FE620]/50 shadow-[0_0_18px_rgba(31,230,32,0.25)] hover:ring-[#1FE620] hover:shadow-[0_0_30px_rgba(31,230,32,0.5)] transition">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-md bg-black/20 flex items-center justify-center">
                 <Icon name="whatsapp" className="w-6 h-6" />
@@ -475,12 +475,11 @@ function ContactoPage() {
 
         <aside className="space-y-3">
           {[
-            { i: "whatsapp", t: "WhatsApp", d: "+54 9 11 5555-5555" },
-            { i: "instagram", t: "Instagram", d: "@elpapustore" },
-            { i: "facebook", t: "Facebook", d: "/elpapustore" },
-            { i: "chat", t: "Horarios", d: "Lun a Sáb · 10 a 20hs" },
+            { i: "whatsapp", t: "WhatsApp", d: (window.__PAPU_CONTACT__ || {}).whatsappDisplay || "", link: (window.__PAPU_CONTACT__ || {}).whatsappUrl },
+            { i: "instagram", t: "Instagram", d: (window.__PAPU_CONTACT__ || {}).instagramHandle || "", link: (window.__PAPU_CONTACT__ || {}).instagramUrl },
+            { i: "chat", t: "Horarios", d: "Lun a Sáb · 10 a 20hs", link: null },
           ].map(c => (
-            <a key={c.t} href="#" className="flex items-center gap-3 bg-[#0a0a0a] border border-white/5 hover:border-[#1FE620]/40 rounded-xl p-4 transition group">
+            <a key={c.t} href={c.link || undefined} target={c.link ? "_blank" : undefined} rel={c.link ? "noopener noreferrer" : undefined} className="flex items-center gap-3 bg-[#0a0a0a] border border-white/5 hover:border-[#1FE620]/40 rounded-xl p-4 transition group">
               <div className="w-11 h-11 rounded-md bg-[#1FE620]/10 border border-[#1FE620]/30 text-[#1FE620] flex items-center justify-center group-hover:bg-[#1FE620] group-hover:text-black transition">
                 <Icon name={c.i} />
               </div>

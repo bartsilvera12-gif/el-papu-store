@@ -19,3 +19,13 @@ const FAQS = [];
 const CONTENT = {};
 
 window.__PAPU_DATA__ = { PRODUCTS, CATEGORIAS, FAQS, CONTENT };
+
+// Datos de contacto centralizados. Cualquier botón/enlace de WhatsApp o
+// Instagram debe usar estos valores (no hardcodear números/URLs sueltos).
+window.__PAPU_CONTACT__ = {
+  whatsappNumber: "595971985337",
+  whatsappDisplay: "+595 971 985 337",
+  whatsappUrl: "https://wa.me/595971985337",
+  instagramHandle: "@elpapu_store",
+  instagramUrl: "https://www.instagram.com/elpapu_store?igsh=MXF6Y2wydHdoeTcyMw==",
+};
