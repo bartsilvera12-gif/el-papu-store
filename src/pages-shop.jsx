@@ -64,7 +64,7 @@ function SortDropdown({ value, onChange }) {
 
 function CatalogoPage() {
   const { PRODUCTS, CATEGORIAS } = window.__PAPU_DATA__;
-  const { route, navigate } = useShop();
+  const { route, navigate, dataVersion } = useShop();
   const initialFilter = route.params?.filter || "todos";
   const initialCat = route.params?.categoria || "todas";
 
@@ -73,6 +73,14 @@ function CatalogoPage() {
   const [sort, setSort] = useStateShop("relevancia");
   const [search, setSearch] = useStateShop("");
   const [showFilters, setShowFilters] = useStateShop(false);
+
+  // Re-sincronizar los filtros cuando se navega al catálogo con nuevos params
+  // (ej: elegir una categoría desde el menú "Categorías" del navbar estando ya
+  // en el catálogo). Sin esto, el estado quedaba fijado al valor del primer render.
+  useEffectShop(() => {
+    setCat(route.params?.categoria || "todas");
+    setFilter(route.params?.filter || "todos");
+  }, [route]);
 
   const filtered = useMemoShop(() => {
     let arr = [...PRODUCTS];
@@ -86,7 +94,7 @@ function CatalogoPage() {
     if (sort === "precio-desc") arr.sort((a, b) => b.precio - a.precio);
     if (sort === "novedad") arr.sort((a, b) => (b.badge === "nuevo" ? 1 : 0) - (a.badge === "nuevo" ? 1 : 0));
     return arr;
-  }, [cat, filter, sort, search]);
+  }, [cat, filter, sort, search, dataVersion]);
 
   const filtersBar = (
     <div className="space-y-5">
