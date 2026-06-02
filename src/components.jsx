@@ -684,6 +684,15 @@ function Footer() {
           </div>
 
           <div>
+            <div className="text-[#1FE620] uppercase text-xs font-bold tracking-[0.3em] mb-4">Categorías</div>
+            <ul className="space-y-2.5 text-sm">
+              {CATEGORIAS.map(c => (
+                <li key={c.id}><button onClick={() => goCategory(c)} className="text-white/60 hover:text-[#1FE620]">{c.nombre}</button></li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
             <div className="text-[#1FE620] uppercase text-xs font-bold tracking-[0.3em] mb-4">Tienda</div>
             <ul className="space-y-2.5 text-sm">
               {[["home","Inicio"],["catalogo","Catálogo"],["sobre","Sobre nosotros"],["contacto","Contacto"]].map(([r,l],i) => (
@@ -692,15 +701,6 @@ function Footer() {
                     document.getElementById("site-footer")?.scrollIntoView({ behavior: "smooth", block: "start" });
                   } else navigate(r);
                 }} className="text-white/60 hover:text-[#1FE620]">{l}</button></li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <div className="text-[#1FE620] uppercase text-xs font-bold tracking-[0.3em] mb-4">Categorías</div>
-            <ul className="space-y-2.5 text-sm">
-              {CATEGORIAS.map(c => (
-                <li key={c.id}><button onClick={() => goCategory(c)} className="text-white/60 hover:text-[#1FE620]">{c.nombre}</button></li>
               ))}
             </ul>
           </div>
