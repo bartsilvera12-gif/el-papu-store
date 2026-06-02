@@ -10,7 +10,7 @@ function Hero() {
   const featured = PRODUCTS.find(p => p.is_featured) || PRODUCTS[0] || null;
 
   return (
-    <section className="relative min-h-[100vh] sm:min-h-[92vh] flex items-center pt-24 pb-12 overflow-hidden">
+    <section className="relative min-h-[100svh] sm:min-h-[92vh] flex items-center pt-24 pb-12 overflow-hidden">
       {/* BG layers */}
       <div className="absolute inset-0 bg-[#050505]"></div>
       <div className="absolute inset-0 opacity-60"

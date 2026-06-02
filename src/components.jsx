@@ -562,14 +562,14 @@ function CartDrawer() {
                 <div className="text-white font-bold text-sm line-clamp-2 leading-tight">{item.nombre}</div>
                 <div className="mt-auto flex items-center justify-between">
                   <div className="flex items-center bg-black/40 border border-white/10 rounded">
-                    <button onClick={() => updateQty(item.id, item.qty - 1)} className="w-7 h-7 text-white/70 hover:text-[#1FE620]"><Icon name="minus" className="w-3 h-3 mx-auto" /></button>
+                    <button onClick={() => updateQty(item.id, item.qty - 1)} className="w-9 h-9 text-white/70 hover:text-[#1FE620]"><Icon name="minus" className="w-3.5 h-3.5 mx-auto" /></button>
                     <span className="w-6 text-center text-sm text-white font-bold">{item.qty}</span>
-                    <button onClick={() => updateQty(item.id, item.qty + 1)} className="w-7 h-7 text-white/70 hover:text-[#1FE620]"><Icon name="plus" className="w-3 h-3 mx-auto" /></button>
+                    <button onClick={() => updateQty(item.id, item.qty + 1)} className="w-9 h-9 text-white/70 hover:text-[#1FE620]"><Icon name="plus" className="w-3.5 h-3.5 mx-auto" /></button>
                   </div>
                   <div className="text-white font-display text-lg">{fmt(item.precio * item.qty)}</div>
                 </div>
               </div>
-              <button onClick={() => removeFromCart(item.id)} className="w-7 h-7 shrink-0 text-white/40 hover:text-[#1FE620]"><Icon name="x" className="w-4 h-4 mx-auto" /></button>
+              <button onClick={() => removeFromCart(item.id)} className="w-9 h-9 shrink-0 text-white/40 hover:text-[#1FE620]"><Icon name="x" className="w-4 h-4 mx-auto" /></button>
             </div>
           ))}
         </div>
@@ -687,7 +687,7 @@ function Footer() {
             <div className="text-[#1FE620] uppercase text-xs font-bold tracking-[0.3em] mb-4">Categorías</div>
             <ul className="space-y-2.5 text-sm">
               {CATEGORIAS.map(c => (
-                <li key={c.id}><button onClick={() => goCategory(c)} className="text-white/60 hover:text-[#1FE620]">{c.nombre}</button></li>
+                <li key={c.id}><button onClick={() => goCategory(c)} className="inline-block py-1 text-white/60 hover:text-[#1FE620]">{c.nombre}</button></li>
               ))}
             </ul>
           </div>
@@ -700,7 +700,7 @@ function Footer() {
                   if (r === "contacto") {
                     document.getElementById("site-footer")?.scrollIntoView({ behavior: "smooth", block: "start" });
                   } else navigate(r);
-                }} className="text-white/60 hover:text-[#1FE620]">{l}</button></li>
+                }} className="inline-block py-1 text-white/60 hover:text-[#1FE620]">{l}</button></li>
               ))}
             </ul>
           </div>
