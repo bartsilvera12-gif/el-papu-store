@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>El Papu Store — Productos urbanos y virales en Paraguay</title>
-<meta name="description" content="El Papu Store: productos urbanos, virales y útiles en Paraguay. Accesorios para autos y motos, vapes, vasos térmicos, decoración y más. Compra rápida y atención por WhatsApp." />
+<title>{{TITLE}}</title>
+<meta name="description" content="{{DESCRIPTION}}" />
 <meta name="keywords" content="El Papu Store, productos virales Paraguay, accesorios autos, accesorios motos, vapes Paraguay, vasos térmicos, decoración, tienda online Paraguay" />
 <meta name="author" content="El Papu Store" />
 <meta name="robots" content="index, follow, max-image-preview:large" />
 <meta name="theme-color" content="#1FE620" />
-<link rel="canonical" href="{{BASE_URL}}/" />
+<link rel="canonical" href="{{CANONICAL}}" />
 <link rel="icon" href="/assets/logo.png" />
 <link rel="apple-touch-icon" href="/assets/logo.png" />
 
@@ -17,20 +17,17 @@
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="El Papu Store" />
 <meta property="og:locale" content="es_PY" />
-<meta property="og:title" content="El Papu Store — Productos urbanos y virales en Paraguay" />
-<meta property="og:description" content="Productos urbanos, virales y útiles: accesorios para autos y motos, vapes, vasos térmicos, decoración y más. Compra rápida y atención por WhatsApp." />
-<meta property="og:url" content="{{BASE_URL}}/" />
-<meta property="og:image" content="{{BASE_URL}}/assets/og-image.png" />
-<meta property="og:image:type" content="image/png" />
-<meta property="og:image:width" content="1200" />
-<meta property="og:image:height" content="630" />
-<meta property="og:image:alt" content="El Papu Store — Productos urbanos, virales y con estilo" />
+<meta property="og:title" content="{{TITLE}}" />
+<meta property="og:description" content="{{DESCRIPTION}}" />
+<meta property="og:url" content="{{CANONICAL}}" />
+<meta property="og:image" content="{{OG_IMAGE}}" />
+<meta property="og:image:alt" content="El Papu Store" />
 
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="El Papu Store — Productos urbanos y virales en Paraguay" />
-<meta name="twitter:description" content="Productos urbanos, virales y útiles: accesorios para autos y motos, vapes, vasos térmicos, decoración y más. Compra rápida y atención por WhatsApp." />
-<meta name="twitter:image" content="{{BASE_URL}}/assets/og-image.png" />
+<meta name="twitter:title" content="{{TITLE}}" />
+<meta name="twitter:description" content="{{DESCRIPTION}}" />
+<meta name="twitter:image" content="{{OG_IMAGE}}" />
 
 <!-- Datos estructurados (Schema.org) -->
 <script type="application/ld+json">
@@ -53,6 +50,7 @@
   ]
 }
 </script>
+{{EXTRA_JSONLD}}
 
 <!-- Tailwind -->
 <script src="https://cdn.tailwindcss.com?plugins=line-clamp"></script>
@@ -227,12 +225,12 @@
 </script>
 </head>
 <body>
-  <div id="root"></div>
+  <div id="root">{{SEO_CONTENT}}</div>
 
-  <!-- React + Babel (pinned) -->
+  <!-- React (pinned). El JSX ya viene precompilado del servidor (/build/*.js),
+       así que no cargamos Babel en el navegador. -->
   <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
-  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
   <!-- Supabase JS (UMD). Si todavía no configurás URL+anon key, el sitio funciona con mock. -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -245,15 +243,15 @@
     };
   </script>
 
-  <!-- App scripts (paths absolutos: necesarios para que /admin/login funcione) -->
-  <script type="text/babel" data-presets="react" src="/src/data.jsx"></script>
-  <script type="text/babel" data-presets="react" src="/src/supabase-client.jsx"></script>
-  <script type="text/babel" data-presets="react" src="/src/store-api.jsx"></script>
-  <script type="text/babel" data-presets="react" src="/src/components.jsx"></script>
-  <script type="text/babel" data-presets="react" src="/src/pages-home.jsx"></script>
-  <script type="text/babel" data-presets="react" src="/src/pages-shop.jsx"></script>
-  <script type="text/babel" data-presets="react" src="/src/pages-misc.jsx"></script>
-  <script type="text/babel" data-presets="react" src="/src/admin.jsx"></script>
-  <script type="text/babel" data-presets="react" src="/src/app.jsx"></script>
+  <!-- App scripts compilados (orden importa; comparten scope global) -->
+  <script src="/build/data.js?v={{BUILD_V}}"></script>
+  <script src="/build/supabase-client.js?v={{BUILD_V}}"></script>
+  <script src="/build/store-api.js?v={{BUILD_V}}"></script>
+  <script src="/build/components.js?v={{BUILD_V}}"></script>
+  <script src="/build/pages-home.js?v={{BUILD_V}}"></script>
+  <script src="/build/pages-shop.js?v={{BUILD_V}}"></script>
+  <script src="/build/pages-misc.js?v={{BUILD_V}}"></script>
+  <script src="/build/admin.js?v={{BUILD_V}}"></script>
+  <script src="/build/app.js?v={{BUILD_V}}"></script>
 </body>
 </html>

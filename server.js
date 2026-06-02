@@ -11,9 +11,12 @@ import helmet from "helmet";
 import morgan from "morgan";
 import path from "node:path";
 import fs from "node:fs";
+import crypto from "node:crypto";
+import * as esbuild from "esbuild";
 import { fileURLToPath } from "node:url";
 import { pagoparRouter } from "./backend/routes-pagopar.js";
 import { pagoparConfig } from "./backend/pagopar.js";
+import { getSeo, getProductRoutesForSitemap } from "./backend/seo.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT) || 3000;
@@ -36,7 +39,7 @@ function resolveBaseUrl(req) {
   return `${proto}://${req.get("host")}`;
 }
 
-function sendIndex(req, res) {
+async function sendIndex(req, res) {
   res.set("Cache-Control", "no-cache, no-store, must-revalidate");
   let html;
   try {
@@ -45,8 +48,62 @@ function sendIndex(req, res) {
     return res.status(500).send("index.html no encontrado");
   }
   const baseUrl = resolveBaseUrl(req);
-  res.type("html").send(html.split("{{BASE_URL}}").join(baseUrl));
+
+  // SEO por ruta. Si algo falla, usamos valores genéricos para no romper nada.
+  let seo;
+  try {
+    seo = await getSeo(req.path, baseUrl);
+  } catch (_) {
+    seo = null;
+  }
+  if (!seo) {
+    seo = {
+      title: "El Papu Store — Productos urbanos y virales en Paraguay",
+      description:
+        "El Papu Store: productos urbanos, virales y útiles en Paraguay. Compra rápida y atención por WhatsApp.",
+      canonical: `${baseUrl}/`,
+      ogImage: `${baseUrl}/assets/og-image.png`,
+      extraJsonLd: "",
+      content: "",
+    };
+  }
+
+  const filled = html
+    .split("{{BASE_URL}}").join(baseUrl)
+    .split("{{BUILD_V}}").join(BUILD_VERSION)
+    .split("{{TITLE}}").join(seo.title)
+    .split("{{DESCRIPTION}}").join(seo.description)
+    .split("{{CANONICAL}}").join(seo.canonical)
+    .split("{{OG_IMAGE}}").join(seo.ogImage)
+    .split("{{EXTRA_JSONLD}}").join(seo.extraJsonLd || "")
+    .split("{{SEO_CONTENT}}").join(seo.content || "");
+
+  res.type("html").send(filled);
 }
+
+// ─── Build de scripts del cliente (esbuild) ───────────────────────────
+// Precompilamos el JSX a JS plano AL ARRANCAR (en memoria) y lo servimos en
+// /build/*.js, así el navegador ya no necesita Babel standalone. Mantenemos
+// el mismo patrón de "scripts globales" (sin bundling), solo se transforma
+// el JSX. Un hash del contenido sirve de cache-busting (?v=BUILD_VERSION).
+const APP_SCRIPTS = [
+  "data", "supabase-client", "store-api", "components",
+  "pages-home", "pages-shop", "pages-misc", "admin", "app",
+];
+const compiledJs = new Map();
+let BUILD_VERSION = "0";
+
+function buildClientScripts() {
+  const hash = crypto.createHash("sha1");
+  for (const name of APP_SCRIPTS) {
+    const src = fs.readFileSync(path.join(__dirname, "src", `${name}.jsx`), "utf8");
+    const out = esbuild.transformSync(src, { loader: "jsx", jsx: "transform", target: "es2019" });
+    compiledJs.set(name, out.code);
+    hash.update(out.code);
+  }
+  BUILD_VERSION = hash.digest("hex").slice(0, 10);
+}
+buildClientScripts();
 
 // Rutas públicas indexables para el sitemap (el resto se excluye en robots).
 const SITEMAP_ROUTES = [
@@ -87,6 +144,17 @@ app.get("/api/health", (_req, res) => {
 // ─── API routes ───────────────────────────────────────────────────────
 app.use("/api/pagopar", pagoparRouter());
 
+// ─── Scripts del cliente compilados ───────────────────────────────────
+app.get("/build/:file", (req, res) => {
+  const name = String(req.params.file).replace(/\.js$/i, "");
+  const code = compiledJs.get(name);
+  if (code == null) return res.status(404).type("text/plain").send("// not found");
+  res.type("application/javascript");
+  // URL versionada (?v=hash) → cache largo seguro; al redeployar cambia el hash.
+  res.set("Cache-Control", "public, max-age=31536000, immutable");
+  res.send(code);
+});
+
 // ─── SEO: robots.txt y sitemap.xml ────────────────────────────────────
 app.get("/robots.txt", (req, res) => {
   const baseUrl = resolveBaseUrl(req);
@@ -102,18 +170,33 @@ Sitemap: ${baseUrl}/sitemap.xml
 `);
 });
 
-app.get("/sitemap.xml", (req, res) => {
+app.get("/sitemap.xml", async (req, res) => {
   const baseUrl = resolveBaseUrl(req);
-  const urls = SITEMAP_ROUTES.map((r) =>
+  const entries = SITEMAP_ROUTES.map((r) =>
 `  <url>
     <loc>${baseUrl}${r.path}</loc>
     <changefreq>${r.changefreq}</changefreq>
     <priority>${r.priority}</priority>
-  </url>`).join("\n");
+  </url>`);
+
+  // Páginas de producto (si Supabase responde; si no, solo las estáticas).
+  try {
+    const products = await getProductRoutesForSitemap();
+    for (const p of products) {
+      const lastmod = p.lastmod ? `\n    <lastmod>${String(p.lastmod).slice(0, 10)}</lastmod>` : "";
+      entries.push(
+`  <url>
+    <loc>${baseUrl}/producto/${encodeURIComponent(p.id)}</loc>${lastmod}
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>`);
+    }
+  } catch (_) { /* dejamos solo las rutas estáticas */ }
+
   res.type("application/xml").send(
 `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls}
+${entries.join("\n")}
 </urlset>
 `);
 });
@@ -127,7 +210,9 @@ const ONE_YEAR = 1000 * 60 * 60 * 24 * 365;
 // Servir index.html (con URLs SEO inyectadas) sin cache, para no quedar
 // pegado con versiones viejas. Interceptamos también /index.html para que
 // nunca se sirva el archivo crudo con los placeholders {{BASE_URL}}.
-app.get(["/", "/index.html"], sendIndex);
+app.get(["/", "/index.html"], (req, res) => {
+  sendIndex(req, res).catch(() => res.status(500).end());
+});
 
 // Resto de archivos con cache largo (los .jsx cambian poco)
 app.use(
@@ -148,7 +233,7 @@ app.use(
 // el router del frontend).
 app.get("*", (req, res, next) => {
   if (req.path.startsWith("/api/")) return next();
-  sendIndex(req, res);
+  sendIndex(req, res).catch(() => res.status(500).end());
 });
 
 // ─── Error handler ────────────────────────────────────────────────────
