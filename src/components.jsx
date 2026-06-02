@@ -695,7 +695,7 @@ function Footer() {
           <div>
             <div className="text-[#1FE620] uppercase text-xs font-bold tracking-[0.3em] mb-4">Tienda</div>
             <ul className="space-y-2.5 text-sm">
-              {[["home","Inicio"],["catalogo","Catálogo"],["sobre","Sobre nosotros"],["contacto","Contacto"]].map(([r,l],i) => (
+              {[["home","Inicio"],["catalogo","Catálogo"],["sobre","Sobre nosotros"]].map(([r,l],i) => (
                 <li key={i}><button onClick={() => {
                   if (r === "contacto") {
                     document.getElementById("site-footer")?.scrollIntoView({ behavior: "smooth", block: "start" });
