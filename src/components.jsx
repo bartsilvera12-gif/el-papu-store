@@ -666,7 +666,7 @@ function Footer() {
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#1FE620] to-transparent opacity-50"></div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14 sm:py-20">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-10 justify-items-center text-center">
-          <div>
+          <div className="flex flex-col items-center">
             <Logo size="md" onClick={() => navigate("home")} />
             <p className="text-white/50 text-sm mt-4 leading-relaxed">
               El Papu Store — productos urbanos, virales y compra rápida.
