@@ -105,7 +105,7 @@ function CatalogoPage() {
             className={`text-left px-3 py-2 rounded text-sm transition ${cat === "todas" ? "bg-[#1FE620]/10 text-[#1FE620] border border-[#1FE620]/30" : "text-white/70 hover:text-white border border-transparent"}`}>
             Todas
           </button>
-          {CATEGORIAS.slice(0, 6).map(c => (
+          {CATEGORIAS.map(c => (
             <button key={c.id} onClick={() => setCat(c.nombre)}
               className={`text-left px-3 py-2 rounded text-sm transition flex items-center gap-2 ${cat === c.nombre ? "bg-[#1FE620]/10 text-[#1FE620] border border-[#1FE620]/30" : "text-white/70 hover:text-white border border-transparent"}`}>
               <span>{c.icon}</span> {c.nombre}
