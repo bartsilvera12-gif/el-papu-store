@@ -10,6 +10,7 @@ import compression from "compression";
 import helmet from "helmet";
 import morgan from "morgan";
 import path from "node:path";
+import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 import { pagoparRouter } from "./backend/routes-pagopar.js";
 import { pagoparConfig } from "./backend/pagopar.js";
@@ -20,6 +21,42 @@ const APP_URL = process.env.APP_URL || `http://localhost:${PORT}`;
 const NODE_ENV = process.env.NODE_ENV || "development";
 
 const app = express();
+
+// ─── SEO helpers ──────────────────────────────────────────────────────
+// index.html trae placeholders {{BASE_URL}} para URLs absolutas (canonical,
+// Open Graph, JSON-LD). Las resolvemos por request: usamos APP_URL si apunta
+// a un dominio real, sino derivamos del host del request (útil en local).
+const INDEX_PATH = path.join(__dirname, "index.html");
+
+function resolveBaseUrl(req) {
+  if (APP_URL && !/localhost|127\.0\.0\.1/i.test(APP_URL)) {
+    return APP_URL.replace(/\/+$/, "");
+  }
+  const proto = String(req.headers["x-forwarded-proto"] || req.protocol || "http").split(",")[0].trim();
+  return `${proto}://${req.get("host")}`;
+}
+
+function sendIndex(req, res) {
+  res.set("Cache-Control", "no-cache, no-store, must-revalidate");
+  let html;
+  try {
+    html = fs.readFileSync(INDEX_PATH, "utf8");
+  } catch (e) {
+    return res.status(500).send("index.html no encontrado");
+  }
+  const baseUrl = resolveBaseUrl(req);
+  res.type("html").send(html.split("{{BASE_URL}}").join(baseUrl));
+}
+
+// Rutas públicas indexables para el sitemap (el resto se excluye en robots).
+const SITEMAP_ROUTES = [
+  { path: "/", priority: "1.0", changefreq: "daily" },
+  { path: "/catalogo", priority: "0.9", changefreq: "daily" },
+  { path: "/sobre", priority: "0.6", changefreq: "monthly" },
+  { path: "/contacto", priority: "0.6", changefreq: "monthly" },
+  { path: "/faq", priority: "0.5", changefreq: "monthly" },
+  { path: "/politicas", priority: "0.3", changefreq: "yearly" },
+];
 
 // ─── Seguridad ────────────────────────────────────────────────────────
 // helmet con CSP relajada porque cargamos React/Babel/Tailwind/Supabase
@@ -50,17 +87,47 @@ app.get("/api/health", (_req, res) => {
 // ─── API routes ───────────────────────────────────────────────────────
 app.use("/api/pagopar", pagoparRouter());
 
+// ─── SEO: robots.txt y sitemap.xml ────────────────────────────────────
+app.get("/robots.txt", (req, res) => {
+  const baseUrl = resolveBaseUrl(req);
+  res.type("text/plain").send(
+`User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /checkout
+Disallow: /pagopar
+
+Sitemap: ${baseUrl}/sitemap.xml
+`);
+});
+
+app.get("/sitemap.xml", (req, res) => {
+  const baseUrl = resolveBaseUrl(req);
+  const urls = SITEMAP_ROUTES.map((r) =>
+`  <url>
+    <loc>${baseUrl}${r.path}</loc>
+    <changefreq>${r.changefreq}</changefreq>
+    <priority>${r.priority}</priority>
+  </url>`).join("\n");
+  res.type("application/xml").send(
+`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls}
+</urlset>
+`);
+});
+
 // ─── Estáticos ────────────────────────────────────────────────────────
 // MIME para .jsx (Babel standalone los lee como text/babel en el client)
 express.static.mime.define({ "application/javascript": ["jsx"] });
 
 const ONE_YEAR = 1000 * 60 * 60 * 24 * 365;
 
-// Servir index.html sin cache (para no quedar pegado con versiones viejas)
-app.get("/", (_req, res) => {
-  res.set("Cache-Control", "no-cache, no-store, must-revalidate");
-  res.sendFile(path.join(__dirname, "index.html"));
-});
+// Servir index.html (con URLs SEO inyectadas) sin cache, para no quedar
+// pegado con versiones viejas. Interceptamos también /index.html para que
+// nunca se sirva el archivo crudo con los placeholders {{BASE_URL}}.
+app.get(["/", "/index.html"], sendIndex);
 
 // Resto de archivos con cache largo (los .jsx cambian poco)
 app.use(
@@ -81,8 +148,7 @@ app.use(
 // el router del frontend).
 app.get("*", (req, res, next) => {
   if (req.path.startsWith("/api/")) return next();
-  res.set("Cache-Control", "no-cache, no-store, must-revalidate");
-  res.sendFile(path.join(__dirname, "index.html"));
+  sendIndex(req, res);
 });
 
 // ─── Error handler ────────────────────────────────────────────────────
