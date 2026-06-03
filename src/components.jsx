@@ -26,6 +26,36 @@ function routeToPath(name, params) {
   }
 }
 
+// Título de la pestaña según la ruta interna del SPA. Replica el formato del
+// SEO server-side (backend/seo.js) para que al navegar client-side el título
+// quede igual que en un deep-link/refresh. Devuelve null cuando no puede
+// resolverse todavía (ej: detalle con datos sin cargar) para no pisar el
+// título correcto que ya inyectó el servidor.
+const SITE_NAME_TITLE = "El Papu Store";
+function documentTitleForRoute(route) {
+  const name = route && route.name;
+  const params = (route && route.params) || {};
+  switch (name) {
+    case "home":           return SITE_NAME_TITLE + " — Productos urbanos y virales en Paraguay";
+    case "catalogo":       return "Catálogo completo — " + SITE_NAME_TITLE;
+    case "sobre":          return "Sobre nosotros — " + SITE_NAME_TITLE;
+    case "contacto":       return "Contacto — " + SITE_NAME_TITLE;
+    case "faq":            return "Preguntas frecuentes — " + SITE_NAME_TITLE;
+    case "politicas":      return "Políticas — " + SITE_NAME_TITLE;
+    case "checkout":       return "Checkout — " + SITE_NAME_TITLE;
+    case "success":        return "¡Gracias por tu compra! — " + SITE_NAME_TITLE;
+    case "pagopar-result": return "Resultado del pago — " + SITE_NAME_TITLE;
+    case "detalle": {
+      const data = (typeof window !== "undefined" && window.__PAPU_DATA__) || {};
+      const list = data.PRODUCTS || [];
+      const prod = list.find(p => p.id === params.id);
+      if (prod && prod.nombre) return prod.nombre + " — " + SITE_NAME_TITLE;
+      return null; // datos aún no cargados → no pisar el título del servidor
+    }
+    default: return SITE_NAME_TITLE;
+  }
+}
+
 function pathToRoute(path) {
   const pg = path.match(/^\/pagopar\/resultado\/([^/?#]+)/);
   if (pg) {
@@ -66,6 +96,16 @@ function ShopProvider({ children }) {
     window.addEventListener("papu:data-loaded", onLoaded);
     return () => window.removeEventListener("papu:data-loaded", onLoaded);
   }, []);
+
+  // Mantener el título de la pestaña sincronizado con la ruta del SPA. Sin
+  // esto, al navegar client-side el title quedaba fijo en el primero que el
+  // servidor renderizó (ej: entrabas a un producto y seguía mostrando otro).
+  // Depende de dataVersion para resolver el nombre del producto una vez que
+  // cargan los datos de Supabase.
+  useEffect(() => {
+    const title = documentTitleForRoute(route);
+    if (title) document.title = title;
+  }, [route, dataVersion]);
 
   // Soporte para botón "atrás/adelante" del browser: re-derivar la ruta desde
   // window.location.pathname cuando cambia la URL externamente.
