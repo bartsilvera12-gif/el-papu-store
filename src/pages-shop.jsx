@@ -216,17 +216,11 @@ function DetallePage() {
     );
   }
 
-  // Simulate gallery using product image + 3 vecinos en el array.
-  // Antes hacíamos product.id % length asumiendo id numérico, pero con
-  // datos de Supabase id es UUID string → NaN → crash.
-  const productIndex = PRODUCTS.findIndex(p => p.id === product.id);
-  const baseIdx = productIndex >= 0 ? productIndex : 0;
-  const gallery = [
-    product.img,
-    (PRODUCTS[(baseIdx + 1) % PRODUCTS.length] || product).img,
-    (PRODUCTS[(baseIdx + 2) % PRODUCTS.length] || product).img,
-    (PRODUCTS[(baseIdx + 3) % PRODUCTS.length] || product).img,
-  ];
+  // Galería: solo las imágenes propias del producto. El modelo actual tiene
+  // una única imagen (product.img), así que la galería trae solo esa. Si en el
+  // futuro se agregan más (product.images[]), se concatenan acá.
+  const gallery = [product.img, ...(Array.isArray(product.images) ? product.images : [])]
+    .filter(Boolean);
 
   const related = PRODUCTS.filter(p => p.categoria === product.categoria && p.id !== product.id).slice(0, 4);
   const discount = product.precioAnterior ? Math.round((1 - product.precio / product.precioAnterior) * 100) : 0;
@@ -250,21 +244,23 @@ function DetallePage() {
           {/* Gallery */}
           <div className="flex flex-col gap-3">
             <div className={`relative aspect-square rounded-xl overflow-hidden bg-gradient-to-br ${product.color} border border-white/5`}>
-              <img src={gallery[activeImg]} alt={product.nombre}
+              <img src={gallery[activeImg] || gallery[0]} alt={product.nombre}
                 className="w-full h-full object-cover transition-opacity duration-300" />
               <div className="absolute top-4 left-4 flex flex-col gap-2">
                 {product.badge && <Badge kind={product.badge}>{product.badge}</Badge>}
                 {discount > 0 && <Badge kind="descuento">-{discount}%</Badge>}
               </div>
             </div>
-            <div className="grid grid-cols-4 gap-3">
-              {gallery.map((img, i) => (
-                <button key={i} onClick={() => setActiveImg(i)}
-                  className={`aspect-square rounded-md overflow-hidden border-2 transition ${activeImg === i ? "border-[#1FE620] shadow-[0_0_16px_rgba(31,230,32,0.4)]" : "border-white/10 hover:border-white/30 opacity-60 hover:opacity-100"}`}>
-                  <img src={img} alt="" className="w-full h-full object-cover" />
-                </button>
-              ))}
-            </div>
+            {gallery.length > 1 && (
+              <div className="grid grid-cols-4 gap-3">
+                {gallery.map((img, i) => (
+                  <button key={i} onClick={() => setActiveImg(i)}
+                    className={`aspect-square rounded-md overflow-hidden border-2 transition ${activeImg === i ? "border-[#1FE620] shadow-[0_0_16px_rgba(31,230,32,0.4)]" : "border-white/10 hover:border-white/30 opacity-60 hover:opacity-100"}`}>
+                    <img src={img} alt="" className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Info */}
