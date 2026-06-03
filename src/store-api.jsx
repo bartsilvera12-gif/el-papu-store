@@ -27,6 +27,7 @@ const PapuStoreAPI = (function () {
       stock: row.stock || 0,
       color: row.color || "from-emerald-500/20 to-black",
       img: row.image_url || "",
+      images: Array.isArray(row.gallery_urls) ? row.gallery_urls.filter(Boolean) : [],
       slug: row.slug,
       is_active: row.is_active,
       is_featured: row.is_featured === true,

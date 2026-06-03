@@ -1157,6 +1157,7 @@ var AdminApp = (function () {
       min_stock: p.min_stock != null ? p.min_stock : 0,
       badge: p.badge || "",
       image_url: p.image_url || "",
+      gallery_urls: Array.isArray(p.gallery_urls) ? p.gallery_urls : [],
       color: p.color || "from-emerald-500/20 to-black",
       is_active: p.is_active !== false,
       is_featured: p.is_featured === true,
@@ -1165,6 +1166,12 @@ var AdminApp = (function () {
     var f = fState[0];
     var setF = fState[1];
     function set(k, v) { setF(Object.assign({}, f, (function () { var o = {}; o[k] = v; return o; })())); }
+
+    // Imágenes adicionales (columna gallery_urls, jsonb array de URLs).
+    function setGallery(arr) { set("gallery_urls", arr); }
+    function addImg() { setGallery((f.gallery_urls || []).concat([""])); }
+    function updateImg(i, v) { var a = (f.gallery_urls || []).slice(); a[i] = v; setGallery(a); }
+    function removeImg(i) { setGallery((f.gallery_urls || []).filter(function (_, idx) { return idx !== i; })); }
 
     // Cálculo del precio FINAL (lo que paga el cliente) desde precio normal + descuento.
     function calcFinalPrice() {
@@ -1196,6 +1203,8 @@ var AdminApp = (function () {
         display_order: Number(f.display_order) || 0,
         category_id: f.category_id || null,
         badge: f.badge || null,
+        // Solo URLs no vacías; el orden se conserva (son las miniaturas extra).
+        gallery_urls: (f.gallery_urls || []).map(function (s) { return String(s || "").trim(); }).filter(Boolean),
       });
       // Limpiar campos auxiliares que no son columnas en la DB.
       delete payload.discount_type;
@@ -1293,6 +1302,30 @@ var AdminApp = (function () {
           <Field label="Stock mínimo" hint="alerta cuando el stock baja de este nivel (0 = sin alerta)"><TextInput type="number" value={f.min_stock} onChange={function (v) { set("min_stock", v); }} /></Field>
           <div className="sm:col-span-2">
             <Field label="URL de imagen principal"><TextInput value={f.image_url} onChange={function (v) { set("image_url", v); }} placeholder="https://..." /></Field>
+          </div>
+          <div className="sm:col-span-2">
+            <span className="text-[10px] uppercase tracking-[0.2em] text-white/50 font-bold mb-1.5 block">Imágenes adicionales</span>
+            {(f.gallery_urls && f.gallery_urls.length) ? (
+              <div className="space-y-2 mb-2">
+                {f.gallery_urls.map(function (url, i) {
+                  return (
+                    <div key={i} className="flex items-center gap-2">
+                      <span className="text-[10px] text-white/30 font-bold w-5 text-center tabular-nums shrink-0">{i + 2}</span>
+                      <div className="flex-1">
+                        <TextInput value={url} onChange={function (v) { updateImg(i, v); }} placeholder="https://..." />
+                      </div>
+                      <IconBtn title="Quitar imagen" onClick={function () { removeImg(i); }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+                      </IconBtn>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-[11px] text-white/30 mb-2">Sin imágenes adicionales. La primera (principal) ya se muestra arriba.</p>
+            )}
+            <Btn variant="outline" onClick={addImg}>+ Añadir otra imagen</Btn>
+            <span className="text-[10px] text-white/30 mt-2 block">Se muestran como miniaturas en la página del producto, después de la principal.</span>
           </div>
           <div className="sm:col-span-2">
             <Field label="Descripción corta"><TextArea rows={2} value={f.short_description} onChange={function (v) { set("short_description", v); }} /></Field>
