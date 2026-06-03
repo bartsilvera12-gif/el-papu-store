@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --neon:#1FE620;
+    --neon-bright:#00FF33;
+    --bg:#050505;
+    --panel:#0d0d0d;
+    --panel2:#0a0a0a;
+    --line:rgba(255,255,255,0.10);
+    --line-soft:rgba(255,255,255,0.06);
+    --txt:#ffffff;
+    --muted:rgba(255,255,255,0.62);
+    --muted2:rgba(255,255,255,0.40);
+  }
+
+  *{ box-sizing:border-box; -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+
+  @page{ size:A4; margin:14mm 13mm; }
+
+  html{ background:var(--bg); }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--txt);
+    font-family:'Inter',system-ui,Segoe UI,sans-serif;
+    font-size:10.5pt;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  h1,h2,h3,.display{ font-family:'Bebas Neue','Inter',sans-serif; font-weight:400; letter-spacing:.02em; }
+
+  .eyebrow{ color:var(--neon); font-size:8pt; font-weight:800; letter-spacing:.32em; text-transform:uppercase; margin:0 0 6px; }
+  .muted{ color:var(--muted); }
+  .green{ color:var(--neon); }
+  strong{ color:#fff; font-weight:700; }
+
+  /* ---------- Page / section ---------- */
+  .sec{ break-before:page; padding-top:2mm; }
+  .sec:first-of-type{ break-before:auto; }
+
+  h2.title{ font-size:30pt; line-height:.95; margin:0 0 4mm; text-transform:uppercase; }
+  h3.sub{ font-size:15pt; color:#fff; text-transform:uppercase; letter-spacing:.04em; margin:7mm 0 3mm; padding-bottom:2mm; border-bottom:1px solid var(--line); }
+  p{ margin:0 0 3mm; color:var(--muted); }
+  p.lead{ color:#d8d8d8; font-size:11pt; }
+
+  /* ---------- Cover ---------- */
+  .cover{
+    break-after:page;
+    height:265mm;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center;
+    background:
+      radial-gradient(ellipse at 50% 30%, rgba(31,230,32,0.18), transparent 60%),
+      radial-gradient(ellipse at 50% 100%, rgba(31,230,32,0.10), transparent 55%);
+    border:1px solid rgba(31,230,32,0.25);
+    border-radius:10px;
+  }
+  .cover .logo{ width:54mm; height:auto; border-radius:14px; border:2px solid rgba(31,230,32,0.55); box-shadow:0 0 0 6px rgba(31,230,32,0.06); }
+  .cover .kicker{ margin-top:9mm; color:var(--neon); font-size:9pt; font-weight:800; letter-spacing:.42em; text-transform:uppercase; }
+  .cover h1{ font-size:52pt; line-height:.9; margin:4mm 0 0; text-transform:uppercase; }
+  .cover .desc{ color:var(--muted); max-width:120mm; margin:5mm auto 0; font-size:11pt; }
+  .cover .chip{ margin-top:11mm; display:inline-block; padding:3mm 7mm; border:1px solid rgba(31,230,32,0.4); border-radius:999px; color:#fff; font-size:9pt; letter-spacing:.2em; text-transform:uppercase; background:rgba(31,230,32,0.06); }
+
+  /* ---------- Cards / panels ---------- */
+  .card{ background:var(--panel); border:1px solid var(--line-soft); border-radius:10px; padding:5mm 5.5mm; margin:0 0 4mm; break-inside:avoid; }
+  .card h4{ margin:0 0 2mm; font-size:11.5pt; color:#fff; font-weight:800; }
+
+  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:4mm; }
+  .grid2 .card{ margin:0; }
+
+  /* ---------- Steps ---------- */
+  .steps{ counter-reset:step; margin:2mm 0 0; }
+  .step{ position:relative; display:flex; gap:4mm; padding:3.5mm 4mm 3.5mm 4mm; background:var(--panel); border:1px solid var(--line-soft); border-left:3px solid var(--neon); border-radius:8px; margin:0 0 3mm; break-inside:avoid; }
+  .step .n{ flex:0 0 auto; width:8mm; height:8mm; border-radius:50%; background:var(--neon); color:#000; font-weight:900; font-size:11pt; display:flex; align-items:center; justify-content:center; }
+  .step .body{ flex:1; }
+  .step .body b{ color:#fff; }
+  .step .body p{ margin:1mm 0 0; }
+
+  /* ---------- Callouts ---------- */
+  .callout{ border-radius:8px; padding:3.5mm 4.5mm; margin:0 0 4mm; break-inside:avoid; border:1px solid; }
+  .callout .h{ font-weight:800; font-size:9.5pt; text-transform:uppercase; letter-spacing:.12em; margin:0 0 1.5mm; display:flex; align-items:center; gap:2mm; }
+  .callout p{ margin:0; font-size:10pt; }
+  .tip{ background:rgba(31,230,32,0.07); border-color:rgba(31,230,32,0.35); }
+  .tip .h{ color:var(--neon); }
+  .warn{ background:rgba(255,193,7,0.07); border-color:rgba(255,193,7,0.35); }
+  .warn .h{ color:#FFC107; }
+  .warn p{ color:#e7e0c8; }
+  .info{ background:rgba(255,255,255,0.04); border-color:var(--line); }
+  .info .h{ color:#fff; }
+
+  /* ---------- Field list ---------- */
+  .fields{ width:100%; border-collapse:collapse; margin:0 0 4mm; }
+  .fields td{ vertical-align:top; padding:2.6mm 3mm; border-bottom:1px solid var(--line-soft); }
+  .fields tr:last-child td{ border-bottom:none; }
+  .fields .k{ width:42mm; color:var(--neon); font-weight:700; font-size:10pt; }
+  .fields .v{ color:var(--muted); font-size:10pt; }
+
+  /* ---------- Status table ---------- */
+  .stbl{ width:100%; border-collapse:collapse; margin:0 0 4mm; break-inside:avoid; }
+  .stbl th{ text-align:left; font-size:8pt; text-transform:uppercase; letter-spacing:.2em; color:var(--muted2); padding:2mm 3mm; border-bottom:1px solid var(--line); }
+  .stbl td{ padding:3mm; border-bottom:1px solid var(--line-soft); vertical-align:top; color:var(--muted); font-size:10pt; }
+  .badge{ display:inline-block; padding:1mm 3mm; border-radius:5px; font-size:8.5pt; font-weight:800; text-transform:uppercase; letter-spacing:.06em; white-space:nowrap; }
+  .b-pend{ color:#FFC107; background:rgba(255,193,7,.12); border:1px solid rgba(255,193,7,.3); }
+  .b-conf{ color:var(--neon); background:rgba(31,230,32,.12); border:1px solid rgba(31,230,32,.3); }
+  .b-ship{ color:#3B9EFF; background:rgba(59,158,255,.12); border:1px solid rgba(59,158,255,.3); }
+  .b-deli{ color:var(--neon); background:rgba(31,230,32,.18); border:1px solid rgba(31,230,32,.4); }
+  .b-canc{ color:#FF5A5A; background:rgba(255,90,90,.12); border:1px solid rgba(255,90,90,.3); }
+
+  /* ---------- Pills / inline ui ---------- */
+  .ui{ display:inline-block; padding:.6mm 2.4mm; border-radius:5px; background:rgba(255,255,255,.07); border:1px solid var(--line); color:#fff; font-size:9pt; font-weight:600; white-space:nowrap; }
+  .ui-green{ display:inline-block; padding:.6mm 2.4mm; border-radius:5px; background:var(--neon); border:1px solid var(--neon); color:#000; font-size:9pt; font-weight:800; white-space:nowrap; }
+
+  /* ---------- TOC ---------- */
+  .toc{ margin:4mm 0 0; }
+  .toc .row{ display:flex; align-items:center; gap:4mm; padding:3mm 4mm; background:var(--panel); border:1px solid var(--line-soft); border-radius:8px; margin:0 0 2.5mm; break-inside:avoid; }
+  .toc .num{ width:8mm; height:8mm; border-radius:6px; background:rgba(31,230,32,.12); border:1px solid rgba(31,230,32,.3); color:var(--neon); font-weight:800; display:flex; align-items:center; justify-content:center; font-size:10pt; }
+  .toc .t{ font-weight:700; color:#fff; font-size:11pt; }
+  .toc .d{ color:var(--muted2); font-size:9pt; }
+
+  ul.clean{ margin:0 0 3mm; padding-left:0; list-style:none; }
+  ul.clean li{ position:relative; padding:1.4mm 0 1.4mm 7mm; color:var(--muted); break-inside:avoid; }
+  ul.clean li::before{ content:""; position:absolute; left:1mm; top:3mm; width:3mm; height:3mm; border-radius:50%; background:var(--neon); box-shadow:0 0 0 2px rgba(31,230,32,.18); }
+  ul.clean li b{ color:#fff; }
+
+  .footer{ position:running(footer); }
+
+  .pagehead{ display:flex; align-items:center; justify-content:space-between; margin-bottom:5mm; }
+  .pagehead .logo{ width:13mm; border-radius:6px; border:1px solid rgba(31,230,32,.4); }
+  .pagehead .tag{ font-size:7.5pt; letter-spacing:.3em; text-transform:uppercase; color:var(--muted2); }
+
+  .divider{ height:1px; background:linear-gradient(90deg, rgba(31,230,32,.5), transparent); margin:4mm 0; }
+</style>
+</head>
+<body>
+
+<!-- ===================== COVER ===================== -->
+<div class="cover">
+  <img class="logo" src="{{LOGO}}" alt="El Papu Store" />
+  <div class="kicker">El Papu Store</div>
+  <h1>Manual de uso<br/>de la tienda</h1>
+  <div class="desc">Todo lo que necesitás para administrar la tienda: cargar productos, subir fotos, gestionar pedidos y mantener el sitio al día. Paso a paso, sin vueltas.</div>
+  <div class="chip">Guía práctica · Panel de administración</div>
+</div>
+
+<!-- ===================== TOC + BIENVENIDA ===================== -->
+<section class="sec">
+  <div class="pagehead">
+    <img class="logo" src="{{LOGO}}" alt="" />
+    <div class="tag">Manual de uso · El Papu Store</div>
+  </div>
+
+  <p class="eyebrow">Antes de empezar</p>
+  <h2 class="title">Bienvenido/a</h2>
+  <p class="lead">Esta guía te muestra cómo manejar la tienda desde el <strong>panel de administración</strong>. No necesitás saber de programación: todo se hace desde una pantalla simple, con botones y formularios. Tomate tu tiempo, seguí los pasos y vas a estar manejando todo en minutos. 💪</p>
+
+  <div class="callout tip">
+    <div class="h">💡 La idea principal</div>
+    <p>La <strong>tienda pública</strong> es lo que ven los clientes. El <strong>panel admin</strong> es tu “sala de control”: ahí cargás productos, ponés precios, subís fotos y ves los pedidos que entran. Lo que guardás en el panel se actualiza solo en la tienda.</p>
+  </div>
+
+  <h3 class="sub">Qué vas a encontrar en esta guía</h3>
+  <div class="toc">
+    <div class="row"><div class="num">1</div><div><div class="t">La tienda que ven tus clientes</div><div class="d">Cómo navegan, compran y pagan</div></div></div>
+    <div class="row"><div class="num">2</div><div><div class="t">Entrar al panel de administración</div><div class="d">Tu usuario y la pantalla de inicio</div></div></div>
+    <div class="row"><div class="num">3</div><div><div class="t">Dashboard: el resumen de todo</div><div class="d">Ventas, pedidos y alertas de un vistazo</div></div></div>
+    <div class="row"><div class="num">4</div><div><div class="t">Productos</div><div class="d">Crear, editar, precios, descuentos y stock</div></div></div>
+    <div class="row"><div class="num">5</div><div><div class="t">Cargar fotos desde Cloudinary</div><div class="d">El paso a paso de las imágenes</div></div></div>
+    <div class="row"><div class="num">6</div><div><div class="t">Pedidos</div><div class="d">Ver, entender y cambiar estados</div></div></div>
+    <div class="row"><div class="num">7</div><div><div class="t">Categorías, FAQ y Contenido</div><div class="d">Ordenar y editar textos del sitio</div></div></div>
+    <div class="row"><div class="num">8</div><div><div class="t">Consejos y preguntas frecuentes</div><div class="d">Buenas prácticas para el día a día</div></div></div>
+  </div>
+</section>
+
+<!-- ===================== 1. TIENDA PUBLICA ===================== -->
+<section class="sec">
+  <div class="pagehead"><img class="logo" src="{{LOGO}}" alt="" /><div class="tag">01 · La tienda pública</div></div>
+  <p class="eyebrow">Sección 1</p>
+  <h2 class="title">La tienda que<br/>ven tus clientes</h2>
+  <p class="lead">Conviene saber cómo es la experiencia del cliente, porque todo lo que cargás en el panel termina mostrándose acá.</p>
+
+  <h3 class="sub">El recorrido del cliente</h3>
+  <div class="step"><div class="n">1</div><div class="body"><b>Explora el catálogo</b><p>Entra al sitio y ve los productos. Puede filtrar por <span class="ui">Categoría</span>, ver <span class="ui">Virales</span>, <span class="ui">Ofertas</span> o <span class="ui">Nuevos</span>, ordenar por precio y buscar por nombre.</p></div></div>
+  <div class="step"><div class="n">2</div><div class="body"><b>Abre un producto</b><p>Ve las fotos (la principal y las adicionales como miniaturas), el precio, el descuento, el stock disponible y las características.</p></div></div>
+  <div class="step"><div class="n">3</div><div class="body"><b>Agrega al carrito</b><p>Con <span class="ui-green">Agregar al carrito</span> o <span class="ui">Comprar ahora</span>. También puede consultar por <span class="ui">WhatsApp</span>.</p></div></div>
+  <div class="step"><div class="n">4</div><div class="body"><b>Completa el checkout</b><p>En 3 pasos: <b>Datos</b> (nombre, teléfono, email y cédula), <b>Dirección</b> (ciudad y dirección) y <b>Entrega</b> (elige el método).</p></div></div>
+  <div class="step"><div class="n">5</div><div class="body"><b>Paga con PagoPar</b><p>Es la pasarela de pago. El cliente paga online y el pedido entra al panel para que vos lo gestiones.</p></div></div>
+
+  <h3 class="sub">Métodos de entrega que puede elegir</h3>
+  <table class="stbl">
+    <tr><td style="width:55mm"><span class="ui-green">Envío al interior</span></td><td>Tiene un costo de envío (Gs. 30.000). Se coordina la entrega a su ciudad.</td></tr>
+    <tr><td><span class="ui">Retiro en el local</span></td><td>Sin costo. El cliente retira el producto en el local.</td></tr>
+    <tr><td><span class="ui">Coordinar Entrega por Delivery</span></td><td>Se coordina el delivery con el cliente (a consultar).</td></tr>
+  </table>
+
+  <div class="callout info">
+    <div class="h">📌 Importante</div>
+    <p>El método de entrega que elige el cliente queda guardado en el pedido. Vos lo ves en el panel, en la ficha de cada pedido, para saber cómo entregarlo.</p>
+  </div>
+</section>
+
+<!-- ===================== 2. ENTRAR AL PANEL ===================== -->
+<section class="sec">
+  <div class="pagehead"><img class="logo" src="{{LOGO}}" alt="" /><div class="tag">02 · Entrar al panel</div></div>
+  <p class="eyebrow">Sección 2</p>
+  <h2 class="title">Entrar al panel<br/>de administración</h2>
+
+  <div class="step"><div class="n">1</div><div class="body"><b>Abrí la dirección del panel</b><p>En el navegador, agregá <span class="ui">/admin/login</span> al final de la dirección del sitio. Ejemplo: <span class="green">elpapustore.com.py/admin/login</span></p></div></div>
+  <div class="step"><div class="n">2</div><div class="body"><b>Ingresá tu email y contraseña</b><p>Son los datos de tu usuario de administrador. Si no tenés acceso, pedí que te den de alta como admin.</p></div></div>
+  <div class="step"><div class="n">3</div><div class="body"><b>Listo</b><p>Entrás al <b>Dashboard</b>. A la izquierda tenés el menú: Dashboard, Productos, Categorías, Pedidos y Contenido.</p></div></div>
+
+  <div class="callout warn">
+    <div class="h">⚠️ Cuidá tu acceso</div>
+    <p>El panel maneja datos reales de la tienda y de los clientes. No compartas tu usuario ni tu contraseña, y cerrá sesión si usás una computadora que no es tuya.</p>
+  </div>
+
+  <div class="callout tip">
+    <div class="h">💡 ¿No podés entrar?</div>
+    <p>Revisá que el email y la contraseña estén bien escritos. Si dice <i>“Tu usuario no tiene permisos de administrador”</i>, significa que tu cuenta todavía no fue habilitada como admin: pedí que te activen.</p>
+  </div>
+</section>
+
+<!-- ===================== 3. DASHBOARD ===================== -->
+<section class="sec">
+  <div class="pagehead"><img class="logo" src="{{LOGO}}" alt="" /><div class="tag">03 · Dashboard</div></div>
+  <p class="eyebrow">Sección 3</p>
+  <h2 class="title">Dashboard:<br/>el resumen de todo</h2>
+  <p class="lead">Es la primera pantalla. Te da una foto rápida de cómo viene la tienda hoy.</p>
+
+  <h3 class="sub">Los números principales</h3>
+  <div class="grid2">
+    <div class="card"><h4>💰 Ingresos confirmados</h4><p>El dinero de los pedidos ya pagados. Tu “caja” real.</p></div>
+    <div class="card"><h4>⏳ Pedidos pendientes</h4><p>Pedidos que <b>requieren atención</b>. Si hay número acá, revisalos.</p></div>
+    <div class="card"><h4>📈 Ventas (30 días)</h4><p>Lo vendido en el último mes y en la semana.</p></div>
+    <div class="card"><h4>🧾 Ticket promedio</h4><p>Cuánto gasta en promedio cada cliente por pedido.</p></div>
+  </div>
+
+  <h3 class="sub">Más abajo vas a ver</h3>
+  <ul class="clean">
+    <li><b>Mini-indicadores:</b> cantidad de Productos, Categorías, Clientes únicos y Destacados.</li>
+    <li><b>Pedidos recientes:</b> los últimos que entraron, para entrar rápido a gestionarlos.</li>
+    <li><b>Stock crítico:</b> productos que se están por agotar o sin stock. <span class="green">¡Reponé estos primero!</span></li>
+    <li><b>Top productos:</b> los más vendidos por unidades.</li>
+  </ul>
+
+  <div class="callout tip">
+    <div class="h">💡 Tu rutina diaria</div>
+    <p>Arrancá siempre por el Dashboard: mirá <b>Pedidos pendientes</b> y <b>Stock crítico</b>. Con esos dos datos ya sabés qué hacer primero en el día.</p>
+  </div>
+</section>
+
+<!-- ===================== 4. PRODUCTOS ===================== -->
+<section class="sec">
+  <div class="pagehead"><img class="logo" src="{{LOGO}}" alt="" /><div class="tag">04 · Productos</div></div>
+  <p class="eyebrow">Sección 4</p>
+  <h2 class="title">Productos</h2>
+  <p class="lead">Acá creás y editás todo lo que se vende. Es la sección que más vas a usar.</p>
+
+  <h3 class="sub">La lista de productos</h3>
+  <ul class="clean">
+    <li><b>Buscar:</b> escribí el nombre o el código (SKU) para encontrarlo rápido.</li>
+    <li><b>Filtros:</b> <span class="ui">Todos</span> · <span class="ui">Activos</span> · <span class="ui">Inactivos</span> · <span class="ui">Stock bajo</span>.</li>
+    <li><b>Editar:</b> tocá el ícono de lápiz/ojo en la fila del producto.</li>
+    <li><b>Activar / desactivar:</b> con el interruptor. Un producto inactivo <b>no aparece</b> en la tienda (pero no se borra).</li>
+  </ul>
+
+  <h3 class="sub">Crear un producto nuevo</h3>
+  <div class="step"><div class="n">1</div><div class="body"><b>Tocá <span class="ui-green">+ Nuevo producto</span></b><p>Arriba a la derecha. Se abre el formulario.</p></div></div>
+  <div class="step"><div class="n">2</div><div class="body"><b>Completá los campos</b><p>Mirá la tabla de abajo: te explica para qué sirve cada uno.</p></div></div>
+  <div class="step"><div class="n">3</div><div class="body"><b>Guardá</b><p>Tocá <span class="ui-green">Guardar</span>. El producto aparece en la tienda al instante (si está <b>Activo</b>).</p></div></div>
+
+  <h3 class="sub">Cada campo, explicado</h3>
+  <table class="fields">
+    <tr><td class="k">Nombre</td><td class="v">El nombre del producto, tal como lo verá el cliente.</td></tr>
+    <tr><td class="k">Slug</td><td class="v">Identificador para el enlace del producto. Sin espacios, en minúsculas y con guiones (ej: <i>casco-ls2-negro</i>). Tiene que ser único.</td></tr>
+    <tr><td class="k">Categoría</td><td class="v">En qué rubro entra (Autos, Motos, etc.). Ayuda a que el cliente lo encuentre.</td></tr>
+    <tr><td class="k">Precio (Gs.)</td><td class="v">El precio normal, sin descuento.</td></tr>
+    <tr><td class="k">Descuento</td><td class="v">Elegí <b>Porcentaje (%)</b> o <b>Monto fijo (Gs.)</b> y poné el valor. Dejalo en “Sin descuento” si no hay oferta.</td></tr>
+    <tr><td class="k">El cliente paga</td><td class="v">Se calcula solo. Te muestra el <b>precio final</b> y cuánto ahorra el cliente. No se edita.</td></tr>
+    <tr><td class="k">Stock actual</td><td class="v">Cuántas unidades tenés disponibles.</td></tr>
+    <tr><td class="k">Stock mínimo</td><td class="v">Cuando el stock baja a este número, salta la alerta de “stock bajo”. Poné 0 si no querés alerta.</td></tr>
+    <tr><td class="k">URL de imagen principal</td><td class="v">El enlace de la foto principal (de Cloudinary). <b>Ver la Sección 5.</b></td></tr>
+    <tr><td class="k">Imágenes adicionales</td><td class="v">Tocá <span class="ui">+ Añadir otra imagen</span> para sumar más fotos. Se muestran como miniaturas en la ficha del producto.</td></tr>
+    <tr><td class="k">Descripción corta</td><td class="v">Una frase que resume el producto.</td></tr>
+    <tr><td class="k">Descripción</td><td class="v">El texto largo con todos los detalles.</td></tr>
+    <tr><td class="k">Características</td><td class="v">Una por línea. Aparecen como lista con tilde verde en la ficha.</td></tr>
+    <tr><td class="k">Activo</td><td class="v">Si está tildado, el producto se ve en la tienda.</td></tr>
+    <tr><td class="k">Destacado</td><td class="v">Si está tildado, aparece entre los “Virales”.</td></tr>
+  </table>
+
+  <div class="callout warn">
+    <div class="h">⚠️ Ofertas: usá el campo Descuento</div>
+    <p>Para poner un producto en oferta, <b>no</b> cambies el precio a mano. Dejá el <b>Precio</b> normal y usá <b>Descuento</b>. Así la tienda muestra el precio tachado y el “Ahorrás”.</p>
+  </div>
+</section>
+
+<!-- ===================== 5. CLOUDINARY ===================== -->
+<section class="sec">
+  <div class="pagehead"><img class="logo" src="{{LOGO}}" alt="" /><div class="tag">05 · Fotos con Cloudinary</div></div>
+  <p class="eyebrow">Sección 5 · La más importante para las fotos</p>
+  <h2 class="title">Cargar fotos<br/>desde Cloudinary</h2>
+
+  <div class="callout info">
+    <div class="h">🖼️ ¿Qué es Cloudinary?</div>
+    <p>Es el lugar donde se <b>guardan las fotos</b> de los productos. La tienda no guarda la imagen adentro: la muestra desde Cloudinary (por eso carga rápido). El proceso es simple: <b>subís la foto a Cloudinary → copiás su enlace → lo pegás en el producto.</b></p>
+  </div>
+
+  <h3 class="sub">Paso a paso</h3>
+  <div class="step"><div class="n">1</div><div class="body"><b>Entrá a Cloudinary</b><p>Andá a <span class="green">cloudinary.com</span> e iniciá sesión con la cuenta de la tienda.</p></div></div>
+  <div class="step"><div class="n">2</div><div class="body"><b>Abrí la “Media Library”</b><p>Es la biblioteca de imágenes. Buscá (o entrá a) la carpeta <span class="ui">elpapustore/productos</span>, donde van las fotos de los productos.</p></div></div>
+  <div class="step"><div class="n">3</div><div class="body"><b>Subí la foto</b><p>Tocá <span class="ui-green">Upload</span> o <b>arrastrá</b> la imagen desde tu computadora. Esperá a que termine de subir.</p></div></div>
+  <div class="step"><div class="n">4</div><div class="body"><b>Copiá el enlace (URL)</b><p>Hacé clic en la imagen subida y buscá la opción <b>“Copy URL”</b> (copiar enlace). El enlace empieza con <span class="green">https://res.cloudinary.com/…</span></p></div></div>
+  <div class="step"><div class="n">5</div><div class="body"><b>Pegalo en el producto</b><p>Volvé al panel admin, abrí el producto, y pegá el enlace en <span class="ui">URL de imagen principal</span>. Guardá. ¡Listo!</p></div></div>
+  <div class="step"><div class="n">6</div><div class="body"><b>¿Querés varias fotos?</b><p>Subí cada foto a Cloudinary, copiá su enlace, y en el producto tocá <span class="ui">+ Añadir otra imagen</span> y pegá cada enlace. Aparecerán como miniaturas.</p></div></div>
+
+  <div class="callout tip">
+    <div class="h">💡 Para que las fotos queden pro</div>
+    <p style="margin-bottom:2mm">Seguí estos consejos y la tienda se va a ver impecable:</p>
+    <ul class="clean" style="margin:0">
+      <li><b>Cuadradas (1:1):</b> se ven mejor en la galería del producto.</li>
+      <li><b>Buena luz y fondo limpio:</b> el producto bien centrado y nítido.</li>
+      <li><b>Formato JPG o PNG</b>, sin que pese demasiado.</li>
+      <li><b>La principal es la que más vende:</b> elegí la mejor foto como principal.</li>
+    </ul>
+  </div>
+
+  <div class="callout warn">
+    <div class="h">⚠️ El error más común</div>
+    <p>Pegá siempre el <b>enlace completo</b> que empieza con <span class="green">https://</span>. Si pegás solo el nombre del archivo (ej: <i>casco.jpg</i>), la foto <b>no va a aparecer</b>.</p>
+  </div>
+</section>
+
+<!-- ===================== 6. PEDIDOS ===================== -->
+<section class="sec">
+  <div class="pagehead"><img class="logo" src="{{LOGO}}" alt="" /><div class="tag">06 · Pedidos</div></div>
+  <p class="eyebrow">Sección 6</p>
+  <h2 class="title">Pedidos</h2>
+  <p class="lead">Cada compra que hace un cliente llega acá. Tu trabajo es seguir cada pedido hasta que llega a destino.</p>
+
+  <h3 class="sub">La lista de pedidos</h3>
+  <ul class="clean">
+    <li><b>Buscar:</b> por código, nombre del cliente, email o teléfono.</li>
+    <li><b>Filtrar por estado:</b> Todos, Pendientes, Confirmados, Enviados, Entregados, Cancelados.</li>
+    <li><b>Abrir un pedido:</b> tocá la fila para ver todos los detalles.</li>
+  </ul>
+
+  <h3 class="sub">Dentro de un pedido vas a ver</h3>
+  <table class="fields">
+    <tr><td class="k">Cliente</td><td class="v">Nombre, teléfono, email y <b>número de documento</b> (cédula/RUC).</td></tr>
+    <tr><td class="k">Envío</td><td class="v">El <b>método de entrega que eligió</b> el cliente y su dirección.</td></tr>
+    <tr><td class="k">Pago</td><td class="v">Cómo pagó (por ejemplo, PagoPar).</td></tr>
+    <tr><td class="k">Items</td><td class="v">Los productos, cantidades y el total.</td></tr>
+    <tr><td class="k">Estado actual</td><td class="v">Los botones para mover el pedido de una etapa a la otra.</td></tr>
+  </table>
+
+  <h3 class="sub">Los estados, en orden</h3>
+  <table class="stbl">
+    <tr><th>Estado</th><th>Qué significa y qué hacer</th></tr>
+    <tr><td><span class="badge b-pend">Pendiente</span></td><td>Recién entró, esperando confirmación del pago. <b>Revisalo.</b></td></tr>
+    <tr><td><span class="badge b-conf">Confirmado</span></td><td>El pago está confirmado. <b>Preparalo</b> para entregar o enviar.</td></tr>
+    <tr><td><span class="badge b-ship">Enviado</span></td><td>Ya salió / fue despachado al cliente.</td></tr>
+    <tr><td><span class="badge b-deli">Entregado</span></td><td>El cliente lo recibió. <b>Pedido completo.</b> ✅</td></tr>
+    <tr><td><span class="badge b-canc">Cancelado</span></td><td>El pedido se anuló (no se concretó).</td></tr>
+  </table>
+
+  <div class="callout tip">
+    <div class="h">💡 El camino normal de un pedido</div>
+    <p><span class="badge b-pend">Pendiente</span> &nbsp;→&nbsp; <span class="badge b-conf">Confirmado</span> &nbsp;→&nbsp; <span class="badge b-ship">Enviado</span> &nbsp;→&nbsp; <span class="badge b-deli">Entregado</span>. Andá tocando el botón del estado a medida que avanza. Así el panel siempre refleja la realidad.</p>
+  </div>
+</section>
+
+<!-- ===================== 7. CATEGORIAS / FAQ / CONTENIDO ===================== -->
+<section class="sec">
+  <div class="pagehead"><img class="logo" src="{{LOGO}}" alt="" /><div class="tag">07 · Categorías, FAQ y Contenido</div></div>
+  <p class="eyebrow">Sección 7</p>
+  <h2 class="title">Categorías, FAQ<br/>y Contenido</h2>
+
+  <h3 class="sub">Categorías</h3>
+  <p>Son los rubros que agrupan los productos (Autos, Motos, etc.). Desde acá podés crear o editar una categoría con su <b>nombre</b>, un <b>ícono</b> (emoji), una breve <b>descripción</b> y el <b>orden</b> en que aparecen. Mantenelas ordenadas para que el cliente navegue fácil.</p>
+
+  <h3 class="sub">FAQ (Preguntas frecuentes)</h3>
+  <p>Son las preguntas y respuestas que ve el cliente en la sección de ayuda del sitio (envíos, pagos, tiempos, etc.). Podés <b>agregar</b>, <b>editar</b> y <b>ordenar</b> las preguntas. Tené esta sección al día: responde dudas antes de que el cliente tenga que escribir.</p>
+
+  <h3 class="sub">Contenido</h3>
+  <p>Acá editás algunos <b>textos del sitio</b> (como la sección “Sobre nosotros” y datos de contacto). Cambiás el texto, guardás, y se actualiza en la web.</p>
+
+  <div class="callout info">
+    <div class="h">📌 Regla de oro</div>
+    <p>Cualquier cambio que hacés y <b>guardás</b> en el panel se ve enseguida en la tienda. Si algo no aparece, refrescá la página de la tienda.</p>
+  </div>
+</section>
+
+<!-- ===================== 8. CONSEJOS / FAQ ===================== -->
+<section class="sec">
+  <div class="pagehead"><img class="logo" src="{{LOGO}}" alt="" /><div class="tag">08 · Consejos</div></div>
+  <p class="eyebrow">Sección 8</p>
+  <h2 class="title">Consejos y<br/>preguntas frecuentes</h2>
+
+  <h3 class="sub">Buenas prácticas del día a día</h3>
+  <ul class="clean">
+    <li><b>Revisá los pedidos pendientes</b> varias veces al día y movélos de estado.</li>
+    <li><b>Mantené el stock actualizado</b> para no vender algo que no tenés.</li>
+    <li><b>No borres productos:</b> si algo no se vende más, desactivalo (sacá el tilde de “Activo”).</li>
+    <li><b>Fotos de calidad:</b> una buena foto principal vende mucho más.</li>
+    <li><b>Ofertas con el campo Descuento</b>, nunca cambiando el precio a mano.</li>
+    <li><b>Cerrá sesión</b> al terminar si no es tu computadora.</li>
+  </ul>
+
+  <h3 class="sub">Si algo no sale como esperás</h3>
+  <table class="stbl">
+    <tr><th>Situación</th><th>Solución</th></tr>
+    <tr><td>No puedo entrar al panel</td><td>Verificá email y contraseña. Si sigue, pedí que activen tu usuario como admin.</td></tr>
+    <tr><td>Subí una foto y no aparece</td><td>Revisá que pegaste el <b>enlace completo</b> de Cloudinary (empieza con https://). Guardá de nuevo.</td></tr>
+    <tr><td>Un producto no se ve en la tienda</td><td>Revisá que tenga el tilde <b>“Activo”</b>. Si está inactivo, no se muestra.</td></tr>
+    <tr><td>El descuento no se refleja</td><td>Asegurate de elegir el tipo (% o Gs.) y poner un valor mayor a 0.</td></tr>
+    <tr><td>Un cambio no aparece</td><td>Refrescá la página de la tienda (F5). Los cambios se aplican al guardar.</td></tr>
+  </table>
+
+  <div class="divider"></div>
+
+  <div class="callout tip">
+    <div class="h">🚀 Ya estás listo/a</div>
+    <p>Con esto podés manejar la tienda de punta a punta. Ante la duda, volvé a esta guía: está pensada para acompañarte. ¡A vender! 🟢</p>
+  </div>
+
+  <div style="text-align:center; margin-top:10mm;">
+    <img src="{{LOGO}}" alt="El Papu Store" style="width:30mm; border-radius:10px; border:1.5px solid rgba(31,230,32,.5);" />
+    <div style="font-family:'Bebas Neue',sans-serif; font-size:18pt; letter-spacing:.08em; margin-top:3mm;">El Papu Store</div>
+    <div class="muted" style="font-size:9pt; letter-spacing:.2em; text-transform:uppercase;">Manual de uso de la tienda</div>
+  </div>
+</section>
+
+</body>
+</html>
