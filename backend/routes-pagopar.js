@@ -153,7 +153,10 @@ export function pagoparRouter() {
         customer_lastname,
         customer_phone: required.telefono,
         customer_email: required.email,
-        customer_document: required.documento,
+        // Documento (cédula/RUC) del comprador. Se guarda en `notes` porque la
+        // tabla orders no tiene columna dedicada y es la única de texto libre
+        // disponible sin migración. El admin lo muestra en la sección Cliente.
+        notes: required.documento,
         delivery_method: form.entrega || null,
         address: required.direccion,
         city: required.ciudad,
@@ -163,24 +166,11 @@ export function pagoparRouter() {
         total,
       };
 
-      let { data: orderRow, error: oErr } = await supabase
+      const { data: orderRow, error: oErr } = await supabase
         .from("orders")
         .insert(orderInsert)
         .select("id, order_code")
         .single();
-      // Fallback: si la columna customer_document aún no fue migrada en la DB,
-      // reintentar sin ella para no romper el checkout. (Correr
-      // sql/05-order-customer-document.sql para habilitar el guardado.)
-      if (oErr && /customer_document/.test(oErr.message || "")) {
-        console.warn("[pagopar/crear] columna customer_document inexistente; guardando pedido sin documento. Corré sql/05-order-customer-document.sql en Supabase.");
-        const orderInsertNoDoc = Object.assign({}, orderInsert);
-        delete orderInsertNoDoc.customer_document;
-        ({ data: orderRow, error: oErr } = await supabase
-          .from("orders")
-          .insert(orderInsertNoDoc)
-          .select("id, order_code")
-          .single());
-      }
       if (oErr) throw oErr;
 
       const order_id = orderRow.id;

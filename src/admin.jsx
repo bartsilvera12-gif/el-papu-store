@@ -1798,7 +1798,7 @@ var AdminApp = (function () {
               <div className="text-[10px] uppercase tracking-[0.3em] text-[#1FE620] font-bold mb-1">Cliente</div>
               <div className="text-white text-sm">{order.customer_name} {order.customer_lastname || ""}</div>
               <div className="text-white/60 text-xs">{order.customer_phone || "—"} · {order.customer_email || "—"}</div>
-              <div className="text-white/60 text-xs">Documento: {order.customer_document || "—"}</div>
+              <div className="text-white/60 text-xs">Documento: {order.customer_document || order.notes || "—"}</div>
             </div>
             <div>
               <div className="text-[10px] uppercase tracking-[0.3em] text-[#1FE620] font-bold mb-1">Envío</div>
