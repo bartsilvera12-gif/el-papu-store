@@ -127,7 +127,8 @@ export function pagoparRouter() {
         });
       }
 
-      const envio = form.entrega === "envio" ? 3500 : 0;
+      // Debe coincidir con el costo de envío del checkout (src/pages-misc.jsx).
+      const envio = form.entrega === "envio" ? 30000 : 0;
       const total = subtotal + envio;
 
       if (total < 1000) {
@@ -152,6 +153,7 @@ export function pagoparRouter() {
         customer_lastname,
         customer_phone: required.telefono,
         customer_email: required.email,
+        customer_document: required.documento,
         delivery_method: form.entrega || null,
         address: required.direccion,
         city: required.ciudad,
@@ -161,11 +163,24 @@ export function pagoparRouter() {
         total,
       };
 
-      const { data: orderRow, error: oErr } = await supabase
+      let { data: orderRow, error: oErr } = await supabase
         .from("orders")
         .insert(orderInsert)
         .select("id, order_code")
         .single();
+      // Fallback: si la columna customer_document aún no fue migrada en la DB,
+      // reintentar sin ella para no romper el checkout. (Correr
+      // sql/05-order-customer-document.sql para habilitar el guardado.)
+      if (oErr && /customer_document/.test(oErr.message || "")) {
+        console.warn("[pagopar/crear] columna customer_document inexistente; guardando pedido sin documento. Corré sql/05-order-customer-document.sql en Supabase.");
+        const orderInsertNoDoc = Object.assign({}, orderInsert);
+        delete orderInsertNoDoc.customer_document;
+        ({ data: orderRow, error: oErr } = await supabase
+          .from("orders")
+          .insert(orderInsertNoDoc)
+          .select("id, order_code")
+          .single());
+      }
       if (oErr) throw oErr;
 
       const order_id = orderRow.id;

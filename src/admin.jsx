@@ -470,6 +470,19 @@ var AdminApp = (function () {
     cancelled: { label: "Cancelado",  color: "text-red-400",     bg: "bg-red-500/10",     border: "border-red-500/30",     bar: "bg-red-400" },
   };
 
+  // Mapa id -> etiqueta de método de entrega. Debe coincidir con las opciones
+  // del checkout (src/pages-misc.jsx). En la DB se guarda el id (envio/retiro/wa);
+  // acá lo mostramos tal cual lo eligió el cliente.
+  var DELIVERY_LABELS = {
+    envio: "Envío al interior",
+    retiro: "Retiro en el local",
+    wa: "Coordinar Entrega por Delivery",
+  };
+  function deliveryLabel(method) {
+    if (!method) return "—";
+    return DELIVERY_LABELS[method] || method;
+  }
+
   function StatusPill(props) {
     var meta = STATUS_META[props.status] || { label: props.status || "—", color: "text-white/60", bg: "bg-white/5", border: "border-white/10" };
     return (
@@ -1738,7 +1751,7 @@ var AdminApp = (function () {
                     <div><span className={statusCls}>
                       <span className="w-1.5 h-1.5 rounded-full bg-current"></span>{r.status}
                     </span></div>
-                    <div className="text-white/60 text-xs truncate">{r.delivery_method || "—"}</div>
+                    <div className="text-white/60 text-xs truncate">{deliveryLabel(r.delivery_method)}</div>
                     <div className="flex justify-end">
                       <IconBtn title="Ver detalle" onClick={function (e) { if (e) e.stopPropagation(); setSelected(r); }}>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>
@@ -1785,10 +1798,11 @@ var AdminApp = (function () {
               <div className="text-[10px] uppercase tracking-[0.3em] text-[#1FE620] font-bold mb-1">Cliente</div>
               <div className="text-white text-sm">{order.customer_name} {order.customer_lastname || ""}</div>
               <div className="text-white/60 text-xs">{order.customer_phone || "—"} · {order.customer_email || "—"}</div>
+              <div className="text-white/60 text-xs">Documento: {order.customer_document || "—"}</div>
             </div>
             <div>
               <div className="text-[10px] uppercase tracking-[0.3em] text-[#1FE620] font-bold mb-1">Envío</div>
-              <div className="text-white text-sm">{order.delivery_method || "—"}</div>
+              <div className="text-white text-sm">{deliveryLabel(order.delivery_method)}</div>
               <div className="text-white/60 text-xs">{[order.address, order.city, order.reference].filter(Boolean).join(" · ") || "—"}</div>
             </div>
             <div>
