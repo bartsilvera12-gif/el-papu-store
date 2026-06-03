@@ -21,7 +21,7 @@ function CheckoutPage() {
     if (fieldErrors[k]) setFieldErrors(fe => ({ ...fe, [k]: "" }));
   };
 
-  const envio = form.entrega === "envio" ? 25000 : 0;
+  const envio = form.entrega === "envio" ? 30000 : 0;
   const total = cartTotal + envio;
 
   // Campos que exige PagoPar para crear la transacción
@@ -160,9 +160,9 @@ function CheckoutPage() {
             <Section title="3 · Método de entrega">
               <div className="grid sm:grid-cols-3 gap-2">
                 {[
-                  { id: "envio", t: "Envío a domicilio", d: fmt(25000), icon: "truck" },
-                  { id: "retiro", t: "Retiro coordinado", d: "Sin costo", icon: "box" },
-                  { id: "wa", t: "Coordinar por WhatsApp", d: "A consultar", icon: "whatsapp" },
+                  { id: "envio", t: "Envío al interior", d: fmt(30000), icon: "truck" },
+                  { id: "retiro", t: "Retiro en el local", d: "Sin costo", icon: "box" },
+                  { id: "wa", t: "Coordinar Entrega por Delivery", d: "A consultar", icon: "whatsapp" },
                 ].map(o => (
                   <button key={o.id} type="button" onClick={() => handle("entrega", o.id)}
                     className={`text-left p-3 rounded-md border transition ${form.entrega === o.id ? "border-[#1FE620] bg-[#1FE620]/5 shadow-[0_0_12px_rgba(31,230,32,0.15)]" : "border-white/10 bg-[#0d0d0d] hover:border-white/20"}`}>
