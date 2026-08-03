@@ -832,7 +832,7 @@ var AdminApp = (function () {
                       <div key={p.id} className="px-5 py-3 flex items-center gap-3 hover:bg-[#1FE620]/[0.03] transition">
                         <div className="w-9 h-9 shrink-0 rounded-md overflow-hidden bg-[#111] border border-white/5">
                           {p.image_url ? (
-                            <img src={p.image_url} alt="" className="w-full h-full object-cover" />
+                            <img src={window.cldImg(p.image_url, 120)} alt="" className="w-full h-full object-cover" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-white/30 text-xs">∅</div>
                           )}
@@ -1078,7 +1078,7 @@ var AdminApp = (function () {
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="w-11 h-11 shrink-0 rounded-md overflow-hidden bg-[#111] border border-white/5">
                         {r.image_url ? (
-                          <img src={r.image_url} alt="" className="w-full h-full object-cover" />
+                          <img src={window.cldImg(r.image_url, 120)} alt="" className="w-full h-full object-cover" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-white/30 text-xs">∅</div>
                         )}

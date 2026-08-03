@@ -183,7 +183,7 @@ function CheckoutPage() {
               <div className="space-y-3 max-h-72 overflow-y-auto pr-1 mb-4">
                 {cart.map(i => (
                   <div key={i.id} className="flex gap-3 items-center">
-                    <img src={i.img} className="w-14 h-14 rounded object-cover" alt="" />
+                    <img src={window.cldImg(i.img, 120)} className="w-14 h-14 rounded object-cover" alt="" />
                     <div className="flex-1 min-w-0">
                       <div className="text-white text-sm font-bold truncate">{i.nombre}</div>
                       <div className="text-white/50 text-xs">×{i.qty}</div>

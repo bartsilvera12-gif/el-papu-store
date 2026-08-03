@@ -79,7 +79,7 @@ function Hero() {
                       : null}
                   </div>
                   <div className={`aspect-[5/6] bg-gradient-to-br ${featured.color || "from-emerald-500/20 to-black"} relative`}>
-                    <img src={featured.img} alt={featured.nombre}
+                    <img src={window.cldImg(featured.img, 800)} alt={featured.nombre}
                       className="absolute inset-0 w-full h-full object-cover opacity-90" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent"></div>
                     <div className="absolute bottom-4 right-4 w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white text-black font-display text-sm flex items-center justify-center rotate-[-12deg] ring-2 ring-[#1FE620] shadow-[0_0_30px_rgba(31,230,32,0.6)] animate-stamp z-20">

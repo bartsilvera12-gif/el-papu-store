@@ -20,6 +20,22 @@ const CONTENT = {};
 
 window.__PAPU_DATA__ = { PRODUCTS, CATEGORIAS, FAQS, CONTENT };
 
+// Optimizador de imágenes de Cloudinary. Inserta transformaciones
+// (f_auto = formato moderno tipo WebP/AVIF, q_auto = calidad automática,
+// w_<ancho> = redimensiona) justo después de /image/upload/, así el
+// navegador descarga una versión liviana en vez del original de varios MB.
+// URLs que no son de Cloudinary o que ya traen transformaciones se devuelven
+// sin tocar.
+window.cldImg = function (url, w) {
+  if (!url || typeof url !== "string") return url;
+  const marker = "/image/upload/";
+  const i = url.indexOf(marker);
+  if (i === -1) return url; // no es Cloudinary
+  if (url.includes("f_auto") || url.includes("q_auto")) return url; // ya optimizada
+  const t = "f_auto,q_auto" + (w ? ",w_" + w : "") + "/";
+  return url.slice(0, i + marker.length) + t + url.slice(i + marker.length);
+};
+
 // Datos de contacto centralizados. Cualquier botón/enlace de WhatsApp o
 // Instagram debe usar estos valores (no hardcodear números/URLs sueltos).
 window.__PAPU_CONTACT__ = {

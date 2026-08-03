@@ -244,7 +244,7 @@ function DetallePage() {
           {/* Gallery */}
           <div className="flex flex-col gap-3">
             <div className={`relative aspect-square rounded-xl overflow-hidden bg-gradient-to-br ${product.color} border border-white/5`}>
-              <img src={gallery[activeImg] || gallery[0]} alt={product.nombre}
+              <img src={window.cldImg(gallery[activeImg] || gallery[0], 1000)} alt={product.nombre}
                 className="w-full h-full object-cover transition-opacity duration-300" />
               <div className="absolute top-4 left-4 flex flex-col gap-2">
                 {product.badge && <Badge kind={product.badge}>{product.badge}</Badge>}
@@ -256,7 +256,7 @@ function DetallePage() {
                 {gallery.map((img, i) => (
                   <button key={i} onClick={() => setActiveImg(i)}
                     className={`aspect-square rounded-md overflow-hidden border-2 transition ${activeImg === i ? "border-[#1FE620] shadow-[0_0_16px_rgba(31,230,32,0.4)]" : "border-white/10 hover:border-white/30 opacity-60 hover:opacity-100"}`}>
-                    <img src={img} alt="" className="w-full h-full object-cover" />
+                    <img src={window.cldImg(img, 200)} alt="" className="w-full h-full object-cover" />
                   </button>
                 ))}
               </div>

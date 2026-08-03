@@ -482,9 +482,9 @@ function ProductCard({ product, rank }) {
     <div className="group relative bg-[#0d0d0d] border border-white/5 rounded-lg overflow-hidden transition-all duration-300 hover:border-[#1FE620]/60 hover:shadow-[0_0_36px_rgba(31,230,32,0.18)] hover:-translate-y-1 flex flex-col">
       <button onClick={() => navigate("detalle", { id: product.id })}
         className={`relative aspect-square overflow-hidden bg-gradient-to-br ${product.color}`}>
-        <img src={product.img} alt={product.nombre}
+        <img src={window.cldImg(product.img, 600)} alt={product.nombre}
           loading="lazy"
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 mix-blend-luminosity group-hover:mix-blend-normal opacity-90 group-hover:opacity-100" />
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent"></div>
         {/* Top badges */}
         <div className="absolute top-3 left-3 right-3 flex items-start justify-between">
@@ -596,7 +596,7 @@ function CartDrawer() {
 
           {cart.map(item => (
             <div key={item.id} className="flex gap-3 bg-[#111] border border-white/5 rounded-lg p-3 hover:border-[#1FE620]/30 transition">
-              <img src={item.img} alt="" className="w-20 h-20 rounded-md object-cover bg-black" />
+              <img src={window.cldImg(item.img, 160)} alt="" className="w-20 h-20 rounded-md object-cover bg-black" />
               <div className="flex-1 min-w-0 flex flex-col gap-1">
                 <div className="text-[10px] uppercase tracking-wider text-[#1FE620]">{item.categoria}</div>
                 <div className="text-white font-bold text-sm line-clamp-2 leading-tight">{item.nombre}</div>
@@ -666,7 +666,7 @@ function SearchOverlay() {
               {results.map(p => (
                 <button key={p.id} onClick={() => { setSearchOpen(false); navigate("detalle", { id: p.id }); }}
                   className="w-full flex items-center gap-3 p-2 rounded hover:bg-[#1FE620]/10 text-left">
-                  <img src={p.img} className="w-12 h-12 rounded object-cover" alt="" />
+                  <img src={window.cldImg(p.img, 96)} className="w-12 h-12 rounded object-cover" alt="" />
                   <div className="flex-1">
                     <div className="text-white text-sm font-bold">{p.nombre}</div>
                     <div className="text-white/50 text-xs">{p.categoria}</div>
