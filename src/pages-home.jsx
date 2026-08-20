@@ -133,6 +133,9 @@ function Hero() {
 
 // ----------------------- Virales -----------------------
 
+const VIRALES_PAGE_SIZE = 8;
+const VIRALES_ROTATE_MS = 3000;
+
 function ViralesSection() {
   const { navigate } = useShop();
   const { PRODUCTS } = window.__PAPU_DATA__;
@@ -140,6 +143,53 @@ function ViralesSection() {
   // Fallback a badge === "viral" para que el mock (data.jsx) siga teniendo
   // contenido cuando Supabase no está disponible.
   const virales = PRODUCTS.filter(p => p.is_featured || p.badge === "viral");
+
+  // Muestra de a 8 y rota solo si hay más de 8 destacados.
+  const total = virales.length;
+  const pages = total > VIRALES_PAGE_SIZE ? Math.ceil(total / VIRALES_PAGE_SIZE) : 1;
+  const [page, setPage] = React.useState(0);
+  const [paused, setPaused] = React.useState(false);
+  const resumeRef = React.useRef(null);
+
+  // Con "reducir movimiento" activado no auto-rotamos: los dots siguen
+  // permitiendo cambiar de tanda a mano.
+  const reduceMotion = React.useMemo(
+    () => window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    []
+  );
+
+  // La data llega async desde Supabase: si baja la cantidad de destacados,
+  // la página actual puede quedar fuera de rango.
+  React.useEffect(() => { if (page >= pages) setPage(0); }, [pages, page]);
+
+  React.useEffect(() => {
+    if (pages < 2 || paused || reduceMotion) return;
+    const id = setInterval(() => setPage(p => (p + 1) % pages), VIRALES_ROTATE_MS);
+    return () => clearInterval(id);
+  }, [pages, paused, reduceMotion]);
+
+  React.useEffect(() => () => clearTimeout(resumeRef.current), []);
+
+  // En touch no hay hover: al tocar la grilla frenamos un rato para que el
+  // usuario pueda mirar (o apretar "+") sin que se le mueva la tanda.
+  const pauseFor = (ms) => {
+    setPaused(true);
+    clearTimeout(resumeRef.current);
+    resumeRef.current = setTimeout(() => setPaused(false), ms);
+  };
+
+  const goTo = (i) => { setPage(i); pauseFor(8000); };
+
+  // Ventana circular: la última tanda se completa con los primeros productos
+  // en vez de dejar huecos en la grilla. El rank es el puesto real en el
+  // ranking, no la posición dentro de la tanda.
+  const visibles = total === 0 ? [] : Array.from(
+    { length: Math.min(VIRALES_PAGE_SIZE, total) },
+    (_, k) => {
+      const idx = (page * VIRALES_PAGE_SIZE + k) % total;
+      return { product: virales[idx], rank: idx + 1 };
+    }
+  );
 
   return (
     <section className="py-16 sm:py-24 relative overflow-hidden">
@@ -163,9 +213,39 @@ function ViralesSection() {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-          {virales.map((p, i) => <ProductCard key={p.id} product={p} rank={i + 1} />)}
+        <div
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5"
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+          onFocusCapture={() => setPaused(true)}
+          onBlurCapture={() => setPaused(false)}
+          onTouchStart={() => pauseFor(8000)}>
+          {visibles.map(({ product, rank }, i) => (
+            // La key lleva la página para que la animación de entrada se
+            // vuelva a disparar en cada rotación.
+            <div key={`${page}-${product.id}`}
+              className="animate-fadeup"
+              style={{ animationDelay: `${i * 60}ms` }}>
+              <ProductCard product={product} rank={rank} />
+            </div>
+          ))}
         </div>
+
+        {pages > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-8">
+            {Array.from({ length: pages }, (_, i) => (
+              <button key={i} onClick={() => goTo(i)}
+                aria-label={`Ver tanda ${i + 1} de ${pages}`}
+                aria-current={i === page}
+                className={`h-1.5 rounded-full transition-all duration-500 ${
+                  i === page
+                    ? "w-8 bg-[#1FE620] shadow-[0_0_12px_rgba(31,230,32,0.7)]"
+                    : "w-3 bg-white/25 hover:bg-white/50"
+                }`}>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
